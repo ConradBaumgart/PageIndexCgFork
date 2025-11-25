@@ -21,10 +21,10 @@ MISTRAL_ENDPOINT = os.getenv("MISTRAL_ENDPOINT")
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 MISTRAL_MODEL = os.getenv("MISTRAL_MODEL")
 
-def count_tokens(text, model=None):
+def count_tokens(text, model="cl100k_base"):
     if not text:
         return 0
-    enc = tiktoken.encoding_for_model(model)
+    enc = tiktoken.get_encoding("cl100k_base")
     tokens = enc.encode(text)
     return len(tokens)
 
@@ -88,12 +88,12 @@ def ChatGPT_API(model, prompt, api_key=MISTRAL_API_KEY, endpoint=MISTRAL_ENDPOIN
                 return "Error"
             
 
-async def ChatGPT_API_async(model, prompt, api_key=MISTRAL_API_KEY):
+async def ChatGPT_API_async(model, prompt, api_key=MISTRAL_API_KEY, endpoint=MISTRAL_ENDPOINT):
     max_retries = 10
     messages = [{"role": "user", "content": prompt}]
     for i in range(max_retries):
         try:
-            async with openai.AsyncOpenAI(api_key=api_key) as client:
+            async with openai.AsyncOpenAI(api_key=api_key, base_url= endpoint) as client:
                 response = await client.chat.completions.create(
                     model=model,
                     messages=messages,
@@ -412,8 +412,8 @@ def add_preface_if_needed(data):
 
 
 
-def get_page_tokens(pdf_path, model=MISTRAL_MODEL, pdf_parser="PyPDF2"):
-    enc = tiktoken.encoding_for_model(model)
+def get_page_tokens(pdf_path, model="cl100k_base", pdf_parser="PyPDF2"):
+    enc = tiktoken.get_encoding(model)
     if pdf_parser == "PyPDF2":
         pdf_reader = PyPDF2.PdfReader(pdf_path)
         page_list = []
