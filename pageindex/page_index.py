@@ -8,6 +8,7 @@ from .utils import *
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+MISTRAL_MODEL = os.getenv("MISTRAL_MODEL")
 
 ################### check title in page #########################################################
 async def check_title_appearance(item, page_list, start_index=1, model=None):    
@@ -496,7 +497,7 @@ def remove_first_physical_index_section(text):
     return text
 
 ### add verify completeness
-def generate_toc_continue(toc_content, part, model="gpt-4o-2024-11-20"):
+def generate_toc_continue(toc_content, part, model=MISTRAL_MODEL):
     print('start generate_toc_continue')
     prompt = """
     You are an expert in extracting hierarchical tree structure.
@@ -729,7 +730,7 @@ def check_toc(page_list, opt=None):
 
 
 ################### fix incorrect toc #########################################################
-def single_toc_item_index_fixer(section_title, content, model="gpt-4o-2024-11-20"):
+def single_toc_item_index_fixer(section_title, content, model=MISTRAL_MODEL):
     tob_extractor_prompt = """
     You are given a section title and several pages of a document, your job is to find the physical index of the start page of the section in the partial document.
 
