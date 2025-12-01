@@ -1,13 +1,10 @@
-
 from fastapi import FastAPI
-from app.api import health, upload_document  # Import both routers
+from app.api import get_nodes, health, list_trees, upload_document
 
-app = FastAPI(title="My FastAPI Service")
+app = FastAPI(title="Information Retrieval Service")
 
 # Include routers
 app.include_router(health.router)
 app.include_router(upload_document.router)
-
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to FastAPI backend!"}
+app.include_router(list_trees.router)
+app.include_router(get_nodes.router)
