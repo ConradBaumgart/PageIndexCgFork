@@ -1,22 +1,12 @@
+from fastapi import APIRouter, UploadFile, File
+from app.services.upload_service import handle_document_upload
 
-from fastapi import APIRouter, UploadFile, File, HTTPException
-from typing import List
-
-router = APIRouter(prefix="/upload_document", tags=["upload"])
+router = APIRouter(prefix="/upload_document")
 
 @router.post("/")
-async def upload_documents(files: List[UploadFile] = File(...)):
+async def upload_document(file: UploadFile = File(...)):
     """
-    Upload one or multiple PDF documents.
+    Upload a single PDF document (mock).
     """
-    uploaded_files = []
-    for file in files:
-        # Check file type
-        if file.content_type != "application/pdf":
-            raise HTTPException(status_code=400, detail=f"{file.filename} is not a PDF file")
-
-        # Read file content (optional)
-        content = await file.read()
-        uploaded_files.append({"filename": file.filename, "size": len(content)})
-
-    return {"uploaded": uploaded_files}
+    result = await handle_document_upload(file)
+    return {"uploaded": result}
