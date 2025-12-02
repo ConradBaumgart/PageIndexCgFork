@@ -4,6 +4,10 @@ from typing import Dict
 import os
 import json
 from pageindex.page_index import page_index_main
+from app.models.page_index_options import PageIndexOptions
+from app.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data")
 
@@ -32,20 +36,11 @@ async def handle_document_upload(file: UploadFile) -> Dict[str, int]:
     with open(file_path, "wb") as f:
         f.write(content)
 
-    opt = {
-        "model": 'gpt-4o-2024-11-20',
-        "toc_check_page_num": 20,
-        "max_page_num_each_node": 10,
-        "max_token_num_each_node": 20000,
-        "if_add_node_id": "yes",
-        "if_add_node_summary": "yes",
-        "if_add_doc_description":"yes",
-        "if_add_node_text": "yes"
-    }
+    opt = PageIndexOptions()
 
     # Process the PDF
-    toc_with_page_number = page_index_main(file_path, opt)
-    print('Parsing done, saving to file...')
+    toc_with_page_number = await page_index_main(file_path, opt)
+    logger.info(f"Parsing done, saving file {file_path}")
     
     # Save results
     pdf_name = os.path.splitext(os.path.basename(file_path))[0]    
@@ -56,6 +51,7 @@ async def handle_document_upload(file: UploadFile) -> Dict[str, int]:
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(toc_with_page_number, f, indent=2)
     
-    print(f'Tree structure saved to: {output_file}')
+    logger.info(f"Tree structure saved to: {output_file}")
     content = await file.read()
+    
     return {"filename": file.filename, "size": len(content)}
