@@ -7,6 +7,9 @@ import re
 from .utils import *
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from app.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 MISTRAL_MODEL = os.getenv("MISTRAL_MODEL")
 
@@ -572,7 +575,7 @@ def process_no_toc(page_list, start_index=1, model=None, logger=None):
     for page_index in range(start_index, start_index+len(page_list)):
         page_text = f"<physical_index_{page_index}>\n{page_list[page_index-start_index][0]}\n<physical_index_{page_index}>\n\n"
         page_contents.append(page_text)
-        token_lengths.append(count_tokens(page_text, model))
+        token_lengths.append(count_tokens_mistral(page_text))
     group_texts = page_list_to_group_text(page_contents, token_lengths)
     logger.info(f'len(group_texts): {len(group_texts)}')
 
@@ -595,7 +598,7 @@ def process_toc_no_page_numbers(toc_content, toc_page_list, page_list,  start_in
     for page_index in range(start_index, start_index+len(page_list)):
         page_text = f"<physical_index_{page_index}>\n{page_list[page_index-start_index][0]}\n<physical_index_{page_index}>\n\n"
         page_contents.append(page_text)
-        token_lengths.append(count_tokens(page_text, model))
+        token_lengths.append(count_tokens_mistral(page_text))
     
     group_texts = page_list_to_group_text(page_contents, token_lengths)
     logger.info(f'len(group_texts): {len(group_texts)}')
@@ -689,10 +692,10 @@ def process_none_page_numbers(toc_items, page_list, start_index=1, model=None):
 def check_toc(page_list, opt=None):
     toc_page_list = find_toc_pages(start_page_index=0, page_list=page_list, opt=opt)
     if len(toc_page_list) == 0:
-        print('no toc found')
+        logger.info("No TOC found")
         return {'toc_content': None, 'toc_page_list': [], 'page_index_given_in_toc': 'no'}
     else:
-        print('toc found')
+        logger.info(f"TOC found on {len(toc_page_list)} pages.")
         toc_json = toc_extractor(page_list, toc_page_list, opt.model)
 
         if toc_json['page_index_given_in_toc'] == 'yes':
@@ -1057,7 +1060,7 @@ async def tree_parser(page_list, opt, doc=None, logger=None):
 
 
 async def page_index_main(doc, opt=None):
-    logger = JsonLogger(doc)
+    json_logger = JsonLogger(doc)
     
     is_valid_pdf = (
         (isinstance(doc, str) and os.path.isfile(doc) and doc.lower().endswith(".pdf")) or 
@@ -1069,11 +1072,11 @@ async def page_index_main(doc, opt=None):
     print('Parsing PDF...')
     page_list = get_page_tokens(doc)
 
-    logger.info({'total_page_number': len(page_list)})
-    logger.info({'total_token': sum([page[1] for page in page_list])})
+    json_logger.info({'total_page_number': len(page_list)})
+    json_logger.info({'total_token': sum([page[1] for page in page_list])})
 
     async def page_index_builder():
-        structure = await tree_parser(page_list, opt, doc=doc, logger=logger)
+        structure = await tree_parser(page_list, opt, doc=doc, logger=json_logger)
         if opt.if_add_node_id == 'yes':
             write_node_id(structure)    
         if opt.if_add_node_text == 'yes':

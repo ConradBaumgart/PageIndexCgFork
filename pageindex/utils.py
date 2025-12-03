@@ -16,10 +16,15 @@ import logging
 import yaml
 from pathlib import Path
 from types import SimpleNamespace as config
+from app.logging_config import get_logger
+from transformers import AutoTokenizer
+
+logger = get_logger(__name__)
 
 MISTRAL_ENDPOINT = os.getenv("MISTRAL_ENDPOINT")
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 MISTRAL_MODEL = os.getenv("MISTRAL_MODEL")
+
 
 def count_tokens(text, model="cl100k_base"):
     if not text:
@@ -28,7 +33,23 @@ def count_tokens(text, model="cl100k_base"):
     tokens = enc.encode(text)
     return len(tokens)
 
+
+def count_tokens_mistral(text: str) -> int:
+    """
+    Count tokens for a given text using Mistral's tokenizer.
+    """
+    
+    # Load the tokenizer for Mistral (adjust model name if needed)
+    tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-Large-Instruct-2411")
+
+    if not text:
+        return 0
+    tokens = tokenizer.encode(text)
+    return len(tokens)
+
+
 def ChatGPT_API_with_finish_reason(prompt, api_key=MISTRAL_API_KEY, endpoint=MISTRAL_ENDPOINT, model=MISTRAL_MODEL, chat_history=None):
+    logging.info(f"Starting ChatGPT_API_with_finish_reason with prompt: {prompt[:200]}...")
     max_retries = 10
     client = openai.OpenAI(api_key=api_key, base_url= endpoint)
     for i in range(max_retries):
@@ -38,12 +59,14 @@ def ChatGPT_API_with_finish_reason(prompt, api_key=MISTRAL_API_KEY, endpoint=MIS
                 messages.append({"role": "user", "content": prompt})
             else:
                 messages = [{"role": "user", "content": prompt}]
-            
+            messages_as_strings = "\n".join(f"{msg['role']}: {msg['content']}" for msg in messages if 'content' in msg)
+            logging.debug(f"Attempt {i+1}/{max_retries} - Sending request with model: {model} and  {count_tokens_mistral(messages_as_strings)} tokens")
             response = client.chat.completions.create(
                 model=model,
                 messages=messages,
                 temperature=0,
             )
+            logging.info(f"Received response with finish_reason: {response.choices[0].finish_reason}")
             if response.choices[0].finish_reason == "length":
                 return response.choices[0].message.content, "max_output_reached"
             else:
@@ -51,11 +74,11 @@ def ChatGPT_API_with_finish_reason(prompt, api_key=MISTRAL_API_KEY, endpoint=MIS
 
         except Exception as e:
             print('************* Retrying *************')
-            logging.error(f"Error: {e}")
+            logging.warning(f"Retrying after error on attempt {i+1}: {e}")
             if i < max_retries - 1:
                 time.sleep(1)  # Wait for 1秒 before retrying
             else:
-                logging.error('Max retries reached for prompt: ' + prompt)
+                logging.error(f"Max retries reached for prompt: {prompt[:200]}... Last error: {e}")
                 return "Error"
 
 
@@ -535,7 +558,7 @@ def remove_structure_text(data):
 def check_token_limit(structure, limit=110000):
     list = structure_to_list(structure)
     for node in list:
-        num_tokens = count_tokens(node['text'], model='gpt-4o')
+        num_tokens = count_tokens_mistral(node['text'])
         if num_tokens > limit:
             print(f"Node ID: {node['node_id']} has {num_tokens} tokens")
             print("Start Index:", node['start_index'])
