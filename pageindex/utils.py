@@ -11,19 +11,21 @@ import asyncio
 import pymupdf
 from io import BytesIO
 from dotenv import load_dotenv
-load_dotenv()
 import logging
 import yaml
 from pathlib import Path
 from types import SimpleNamespace as config
 from app.logging_config import get_logger
 from transformers import AutoTokenizer
+from app.llm_client import LLMClient
+from typing import List, Dict, Any
 
 logger = get_logger(__name__)
+load_dotenv()
 
-MISTRAL_ENDPOINT = os.getenv("MISTRAL_ENDPOINT")
-MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
-MISTRAL_MODEL = os.getenv("MISTRAL_MODEL")
+MISTRAL_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
+MISTRAL_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
+MISTRAL_MODEL = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME")
 
 
 def count_tokens(text, model="cl100k_base"):
@@ -48,68 +50,86 @@ def count_tokens_mistral(text: str) -> int:
     return len(tokens)
 
 
-def ChatGPT_API_with_finish_reason(prompt, api_key=MISTRAL_API_KEY, endpoint=MISTRAL_ENDPOINT, model=MISTRAL_MODEL, chat_history=None):
+def ChatGPT_API_with_finish_reason(prompt: str,
+                                   api_key: str = None,
+                                   endpoint: str = None, 
+                                   model: str = None,
+                                   chat_history: List[Dict[str, str]] | None = None) -> Any:
     logging.info(f"Starting ChatGPT_API_with_finish_reason with prompt: {prompt[:200]}...")
     max_retries = 10
-    client = openai.OpenAI(api_key=api_key, base_url= endpoint)
+    client = LLMClient()
+    
+    # build OpenAI-style messages
+    messages = (chat_history or []).copy()
+    messages.append({"role": "user", "content": prompt})
     for i in range(max_retries):
         try:
-            if chat_history:
-                messages = chat_history
-                messages.append({"role": "user", "content": prompt})
-            else:
-                messages = [{"role": "user", "content": prompt}]
-            messages_as_strings = "\n".join(f"{msg['role']}: {msg['content']}" for msg in messages if 'content' in msg)
-            logging.debug(f"Attempt {i+1}/{max_retries} - Sending request with model: {model} and  {count_tokens_mistral(messages_as_strings)} tokens")
-            response = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=0,
+            # Optional: token counting (depends on your implementation)
+            messages_as_strings = "\n".join(
+                f"{msg['role']}: {msg['content']}" for msg in messages if 'content' in msg
             )
-            logging.info(f"Received response with finish_reason: {response.choices[0].finish_reason}")
-            if response.choices[0].finish_reason == "length":
-                return response.choices[0].message.content, "max_output_reached"
+            try:
+                logging.debug(
+                    f"Attempt {i+1}/{max_retries} - tokens {count_tokens_mistral(messages_as_strings)}"
+                )
+            except Exception:
+                # don't fail if your token counter is provider-specific
+                pass
+            unified = client.generate(messages)
+
+            logging.info(f"Received response with finish_reason: {unified.finish_reason}")
+
+            if unified.finish_reason == "length":
+                return unified.content, "max_output_reached"
             else:
-                return response.choices[0].message.content, "finished"
+                return unified.content, "finished"
 
         except Exception as e:
             print('************* Retrying *************')
             logging.warning(f"Retrying after error on attempt {i+1}: {e}")
             if i < max_retries - 1:
-                time.sleep(1)  # Wait for 1秒 before retrying
+                time.sleep(1)
             else:
                 logging.error(f"Max retries reached for prompt: {prompt[:200]}... Last error: {e}")
                 return "Error"
 
 
 
-def ChatGPT_API(model, prompt, api_key=MISTRAL_API_KEY, endpoint=MISTRAL_ENDPOINT, chat_history=None):
+
+def ChatGPT_API(
+    model: str,                     # kept for backward compatibility (unused by wrapper)
+    prompt: str,
+    api_key: str = None,           # unused when wrapper reads env
+    endpoint: str = None,          # unused when wrapper reads env
+    chat_history: List[Dict[str, str]] | None = None
+) -> Any:
+    """
+    Calls the unified LLMClient and returns the assistant's content.
+    Preserves retries and the original return contract (str or "Error").
+    """
     max_retries = 10
-    client = openai.OpenAI(api_key=api_key, base_url= endpoint)
+    logging.info(f"Starting ChatGPT_API with prompt: {prompt[:200]}...")
+    llm = LLMClient()  # provider is selected via env: LLM_PROVIDER
+
+    # Build OpenAI-style messages
+    messages = (chat_history or []).copy()
+    messages.append({"role": "user", "content": prompt})
+
     for i in range(max_retries):
         try:
-            if chat_history:
-                messages = chat_history
-                messages.append({"role": "user", "content": prompt})
-            else:
-                messages = [{"role": "user", "content": prompt}]
-            
-            response = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=0,
-            )
-   
-            return response.choices[0].message.content
+            unified = llm.generate(messages)
+            # If needed, you could also inspect: unified.finish_reason / unified.usage / unified.raw_response
+            return unified.content
+
         except Exception as e:
             print('************* Retrying *************')
-            logging.error(f"Error: {e}")
+            logging.error(f"Error on attempt {i+1}/{max_retries}: {e}")
             if i < max_retries - 1:
-                time.sleep(1)  # Wait for 1秒 before retrying
+                time.sleep(1)
             else:
                 logging.error('Max retries reached for prompt: ' + prompt)
                 return "Error"
-            
+
 
 async def ChatGPT_API_async(model, prompt, api_key=MISTRAL_API_KEY, endpoint=MISTRAL_ENDPOINT):
     max_retries = 10
