@@ -23,9 +23,9 @@ from typing import List, Dict, Any
 logger = get_logger(__name__)
 load_dotenv()
 
-MISTRAL_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-MISTRAL_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-MISTRAL_MODEL = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME")
+MISTRAL_ENDPOINT = os.getenv("MISTRAL_ENDPOINT")
+MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
+MISTRAL_MODEL = os.getenv("MISTRAL_MODEL")
 
 
 def count_tokens(text, model="cl100k_base"):
@@ -133,6 +133,7 @@ def ChatGPT_API(
 
 async def ChatGPT_API_async(model, prompt, api_key=MISTRAL_API_KEY, endpoint=MISTRAL_ENDPOINT):
     max_retries = 10
+    logging.info(f"Starting ChatGPT_API_async with prompt: {prompt[:200]}...")
     messages = [{"role": "user", "content": prompt}]
     for i in range(max_retries):
         try:
