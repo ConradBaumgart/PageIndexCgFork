@@ -1,12 +1,11 @@
-from fastapi import APIRouter
-from typing import List
+from fastapi import APIRouter, UploadFile, File
+from app.services.list_trees_service import list_result_jsons
 
-router = APIRouter(prefix="/list_trees")
+router = APIRouter()
 
-@router.get("/")
-async def list_trees() -> List[str]:
+@router.get("/list-trees")
+async def get_list_trees():
     """
-    (Draft! Mock) Return a list of tree titles.
-    Currently returns an empty list as a placeholder.
+    Docstring for get_list_trees
     """
-    return []
+    return list_result_jsons()
