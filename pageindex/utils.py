@@ -56,7 +56,7 @@ def ChatGPT_API_with_finish_reason(prompt: str,
                                    model: str = None,
                                    chat_history: List[Dict[str, str]] | None = None) -> Any:
     logging.info(f"Starting ChatGPT_API_with_finish_reason with prompt: {prompt[:200]}...")
-    max_retries = 10
+    max_retries = 3
     client = LLMClient()
     
     # build OpenAI-style messages
@@ -107,7 +107,7 @@ def ChatGPT_API(
     Calls the unified LLMClient and returns the assistant's content.
     Preserves retries and the original return contract (str or "Error").
     """
-    max_retries = 10
+    max_retries = 3
     logging.info(f"Starting ChatGPT_API with prompt: {prompt[:200]}...")
     llm = LLMClient()  # provider is selected via env: LLM_PROVIDER
 
@@ -132,7 +132,7 @@ def ChatGPT_API(
 
 
 async def ChatGPT_API_async(model, prompt, api_key=MISTRAL_API_KEY, endpoint=MISTRAL_ENDPOINT):
-    max_retries = 10
+    max_retries = 3
     logging.info(f"Starting ChatGPT_API_async with prompt: {prompt[:200]}...")
     messages = [{"role": "user", "content": prompt}]
     for i in range(max_retries):
