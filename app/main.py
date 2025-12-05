@@ -18,7 +18,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan, title="Information Retrieval Service")
 
 @app.get("/healt_check")
-def health_check() -> str:
+def health_check() -> Dict[str, str]:
     return {"status": "ok"}
 
 @app.get("/list_trees")
@@ -38,11 +38,11 @@ async def list_nodes(query: str, documents: list[str]) -> List[Dict[str, str]]:
 
 
 @app.post("/upload_documents")
-async def upload_document(file: UploadFile = File(...)) -> Dict[str, int]:
+async def upload_document(file: UploadFile = File(...)) -> Dict[str, str]:
     """
     Upload a single PDF document and generate a PageIndex tree for information retrieval.
     """
     result = await handle_document_upload(file)
-    return {"uploaded": result}
+    return result
 
 
