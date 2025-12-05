@@ -1,7 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from contextlib import asynccontextmanager
+from typing import Dict, List
 from app.logging_config import get_logger
-from app.api import get_nodes, health, list_trees, upload_document
+from app.services.list_trees_service import list_result_jsons
+from app.services.upload_service import handle_document_upload
 
 logger = get_logger(__name__)
 
@@ -15,8 +17,32 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan, title="Information Retrieval Service")
 
-# Include routers
-app.include_router(health.router)
-app.include_router(upload_document.router)
-app.include_router(list_trees.router)
-app.include_router(get_nodes.router)
+@app.get("/healt_check")
+def health_check() -> str:
+    return {"status": "ok"}
+
+@app.get("/list_trees")
+async def get_list_trees() -> List[Dict[str, str]]:
+    """
+    List all documents which are available for information retrieval.
+    """
+    return list_result_jsons()
+
+@app.get("/get_nodes")
+async def list_nodes(query: str, documents: list[str]) -> List[Dict[str, str]]:
+    """
+    (Mock) Return nodes from documents which based on the query.
+    """
+    result = []
+    return {"uploaded": result}
+
+
+@app.post("/upload_documents")
+async def upload_document(file: UploadFile = File(...)) -> Dict[str, int]:
+    """
+    Upload a single PDF document and generate a PageIndex tree for information retrieval.
+    """
+    result = await handle_document_upload(file)
+    return {"uploaded": result}
+
+
