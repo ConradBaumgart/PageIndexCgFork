@@ -15,11 +15,14 @@ async def lifespan(app: FastAPI):
     # Shutdown
     logger.info("Application shutting down...")
 
+
 app = FastAPI(lifespan=lifespan, title="Information Retrieval Service")
+
 
 @app.get("/healt_check")
 def health_check() -> Dict[str, str]:
     return {"status": "ok"}
+
 
 @app.get("/list_trees")
 async def get_list_trees() -> List[Dict[str, str]]:
@@ -27,6 +30,7 @@ async def get_list_trees() -> List[Dict[str, str]]:
     List all documents which are available for information retrieval.
     """
     return list_result_jsons()
+
 
 @app.get("/get_nodes")
 async def list_nodes(query: str, documents: list[str]) -> List[Dict[str, str]]:
@@ -44,5 +48,3 @@ async def upload_document(file: UploadFile = File(...)) -> Dict[str, str]:
     """
     result = await handle_document_upload(file)
     return result
-
-
