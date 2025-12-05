@@ -11,7 +11,7 @@ logger = get_logger(__name__)
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data")
 
-async def handle_document_upload(file: UploadFile) -> Dict[str, int]:
+async def handle_document_upload(file: UploadFile) -> Dict[str, str]:
     """
     Validate and process a single uploaded PDF file.
     """
@@ -52,6 +52,5 @@ async def handle_document_upload(file: UploadFile) -> Dict[str, int]:
         json.dump(toc_with_page_number, f, indent=2)
     
     logger.info(f"Tree structure saved to: {output_file}")
-    content = await file.read()
     
-    return {"filename": file.filename, "size": len(content)}
+    return {"filename": file.filename}
