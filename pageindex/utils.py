@@ -68,13 +68,9 @@ def ChatGPT_API_with_finish_reason(
     for i in range(max_retries):
         try:
             # Optional: token counting (depends on your implementation)
-            messages_as_strings = "\n".join(
-                f"{msg['role']}: {msg['content']}" for msg in messages if "content" in msg
-            )
+            messages_as_strings = "\n".join(f"{msg['role']}: {msg['content']}" for msg in messages if "content" in msg)
             try:
-                logging.debug(
-                    f"Attempt {i + 1}/{max_retries} - tokens {count_tokens_mistral(messages_as_strings)}"
-                )
+                logging.debug(f"Attempt {i + 1}/{max_retries} - tokens {count_tokens_mistral(messages_as_strings)}")
             except Exception:
                 # don't fail if your token counter is provider-specific
                 pass
@@ -480,11 +476,7 @@ def get_page_tokens(pdf_path, model="cl100k_base", pdf_parser="PyPDF2"):
         if isinstance(pdf_path, BytesIO):
             pdf_stream = pdf_path
             doc = pymupdf.open(stream=pdf_stream, filetype="pdf")
-        elif (
-            isinstance(pdf_path, str)
-            and os.path.isfile(pdf_path)
-            and pdf_path.lower().endswith(".pdf")
-        ):
+        elif isinstance(pdf_path, str) and os.path.isfile(pdf_path) and pdf_path.lower().endswith(".pdf"):
             doc = pymupdf.open(pdf_path)
         page_list = []
         for page in doc:
@@ -611,13 +603,9 @@ def convert_physical_index_to_int(data):
             if isinstance(data[i], dict) and "physical_index" in data[i]:
                 if isinstance(data[i]["physical_index"], str):
                     if data[i]["physical_index"].startswith("<physical_index_"):
-                        data[i]["physical_index"] = int(
-                            data[i]["physical_index"].split("_")[-1].rstrip(">").strip()
-                        )
+                        data[i]["physical_index"] = int(data[i]["physical_index"].split("_")[-1].rstrip(">").strip())
                     elif data[i]["physical_index"].startswith("physical_index_"):
-                        data[i]["physical_index"] = int(
-                            data[i]["physical_index"].split("_")[-1].strip()
-                        )
+                        data[i]["physical_index"] = int(data[i]["physical_index"].split("_")[-1].strip())
     elif isinstance(data, str):
         if data.startswith("<physical_index_"):
             data = int(data.split("_")[-1].rstrip(">").strip())

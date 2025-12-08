@@ -22,9 +22,7 @@ class UnifiedChatResponse:
     content: str
     role: Optional[str]
     finish_reason: Optional[str]
-    usage: Optional[
-        Dict[str, int]
-    ]  # {'prompt_tokens':..., 'completion_tokens':..., 'total_tokens':...}
+    usage: Optional[Dict[str, int]]  # {'prompt_tokens':..., 'completion_tokens':..., 'total_tokens':...}
     model: Optional[str]
     created: Optional[int]
     choices: Optional[List[UnifiedChatChoice]] = None
@@ -134,9 +132,7 @@ class LLMClient:
                         "total_tokens": token_usage.get("total_tokens"),
                     }
 
-            model_name = resp_meta.get("model_name") or os.getenv(
-                "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"
-            )
+            model_name = resp_meta.get("model_name") or os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME")
 
             return UnifiedChatResponse(
                 content=content,
@@ -145,11 +141,7 @@ class LLMClient:
                 usage=usage,
                 model=model_name,
                 created=None,
-                choices=[
-                    UnifiedChatChoice(
-                        index=0, content=content, role="assistant", finish_reason=finish_reason
-                    )
-                ],
+                choices=[UnifiedChatChoice(index=0, content=content, role="assistant", finish_reason=finish_reason)],
                 stop_reason=finish_reason,
                 raw_response=ai_msg,
             )
