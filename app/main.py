@@ -19,7 +19,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan, title="Information Retrieval Service")
 
 
-@app.get("/healt_check")
+@app.get("/health_check")
 def health_check() -> Dict[str, str]:
     return {"status": "ok"}
 
@@ -35,7 +35,7 @@ async def get_list_trees() -> List[Dict[str, str]]:
 @app.get("/get_nodes")
 async def list_nodes(query: str, documents: list[str]) -> List[Dict[str, str]]:
     """
-    (Mock) Return nodes from documents which based on the query.
+    (Mock) Return nodes from documents based on the query.
     """
     result = []
     return {"uploaded": result}
