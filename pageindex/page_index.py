@@ -5,8 +5,6 @@ import math
 import random
 import re
 from .utils import *
-import os
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from app.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -140,15 +138,15 @@ def toc_detector_single_page(content, model=None):
 
 
 def check_if_toc_extraction_is_complete(content, toc, model=None):
-    prompt = f"""
+    prompt = """
     You are given a partial document  and a  table of contents.
     Your job is to check if the  table of contents is complete, which it contains all the main sections in the partial document.
 
     Reply format:
-    {{
+    {
         "thinking": <why do you think the table of contents is complete or not>
         "completed": "yes" or "no"
-    }}
+    }
     Directly return the final JSON structure. Do not output anything else."""
 
     prompt = prompt + "\n Document:\n" + content + "\n Table of contents:\n" + toc
@@ -158,15 +156,15 @@ def check_if_toc_extraction_is_complete(content, toc, model=None):
 
 
 def check_if_toc_transformation_is_complete(content, toc, model=None):
-    prompt = f"""
+    prompt = """
     You are given a raw table of contents and a  table of contents.
     Your job is to check if the  table of contents is complete.
 
     Reply format:
-    {{
+    {
         "thinking": <why do you think the cleaned table of contents is complete or not>
         "completed": "yes" or "no"
-    }}
+    }
     Directly return the final JSON structure. Do not output anything else."""
 
     prompt = (
@@ -195,7 +193,7 @@ def extract_toc_content(content, model=None):
         {"role": "user", "content": prompt},
         {"role": "assistant", "content": response},
     ]
-    prompt = f"""please continue the generation of table of contents , directly output the remaining part of the structure"""
+    prompt = """please continue the generation of table of contents , directly output the remaining part of the structure"""
     new_response, finish_reason = ChatGPT_API_with_finish_reason(
         model=model, prompt=prompt, chat_history=chat_history
     )
@@ -207,7 +205,7 @@ def extract_toc_content(content, model=None):
             {"role": "user", "content": prompt},
             {"role": "assistant", "content": response},
         ]
-        prompt = f"""please continue the generation of table of contents , directly output the remaining part of the structure"""
+        prompt = """please continue the generation of table of contents , directly output the remaining part of the structure"""
         new_response, finish_reason = ChatGPT_API_with_finish_reason(
             model=model, prompt=prompt, chat_history=chat_history
         )

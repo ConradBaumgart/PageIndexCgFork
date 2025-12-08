@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, UploadFile
 from contextlib import asynccontextmanager
 from typing import Dict, List
 from app.logging_config import get_logger

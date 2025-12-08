@@ -11,7 +11,6 @@ import asyncio
 import pymupdf
 from io import BytesIO
 from dotenv import load_dotenv
-import logging
 import yaml
 from pathlib import Path
 from types import SimpleNamespace as config
