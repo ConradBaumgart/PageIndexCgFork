@@ -7,6 +7,7 @@ from app.services.upload_service import handle_document_upload
 
 logger = get_logger(__name__)
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup

@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 from typing import Any, Optional, List, Dict
 import os
@@ -6,6 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 PROVIDER = os.getenv("LLM_PROVIDER")  # "mistral" or "azure"
+
 
 @dataclass
 class UnifiedChatChoice:
@@ -15,12 +15,15 @@ class UnifiedChatChoice:
     finish_reason: Optional[str] = None
     tool_calls: Optional[List[Dict[str, Any]]] = None
 
+
 @dataclass
 class UnifiedChatResponse:
     content: str
     role: Optional[str]
     finish_reason: Optional[str]
-    usage: Optional[Dict[str, int]]  # {'prompt_tokens':..., 'completion_tokens':..., 'total_tokens':...}
+    usage: Optional[
+        Dict[str, int]
+    ]  # {'prompt_tokens':..., 'completion_tokens':..., 'total_tokens':...}
     model: Optional[str]
     created: Optional[int]
     choices: Optional[List[UnifiedChatChoice]] = None
@@ -36,16 +39,18 @@ class LLMClient:
     def _init_client(self):
         if self.provider == "mistral":
             from openai import OpenAI
+
             return OpenAI(
                 api_key=os.getenv("MISTRAL_API_KEY"),
                 base_url=os.getenv("MISTRAL_ENDPOINT"),
             )
         elif self.provider == "azure":
             from langchain_openai import AzureChatOpenAI
+
             return AzureChatOpenAI(
                 openai_api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
                 azure_deployment=os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"),
-                temperature=0
+                temperature=0,
             )
         else:
             raise ValueError(f"Unsupported provider: {self.provider}")
@@ -74,13 +79,15 @@ class LLMClient:
 
             choices = []
             for idx, ch in enumerate(resp.choices):
-                choices.append(UnifiedChatChoice(
-                    index=idx,
-                    content=ch.message.content,
-                    role=getattr(ch.message, "role", None),
-                    finish_reason=getattr(ch, "finish_reason", None),
-                    tool_calls=getattr(ch.message, "tool_calls", None),
-                ))
+                choices.append(
+                    UnifiedChatChoice(
+                        index=idx,
+                        content=ch.message.content,
+                        role=getattr(ch.message, "role", None),
+                        finish_reason=getattr(ch, "finish_reason", None),
+                        tool_calls=getattr(ch.message, "tool_calls", None),
+                    )
+                )
 
             return UnifiedChatResponse(
                 content=choice.message.content,
@@ -91,7 +98,7 @@ class LLMClient:
                 created=getattr(resp, "created", None),
                 choices=choices,
                 stop_reason=finish_reason,
-                raw_response=resp
+                raw_response=resp,
             )
 
         elif self.provider == "azure":
@@ -126,7 +133,9 @@ class LLMClient:
                         "total_tokens": token_usage.get("total_tokens"),
                     }
 
-            model_name = resp_meta.get("model_name") or os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME")
+            model_name = resp_meta.get("model_name") or os.getenv(
+                "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"
+            )
 
             return UnifiedChatResponse(
                 content=content,
@@ -135,7 +144,11 @@ class LLMClient:
                 usage=usage,
                 model=model_name,
                 created=None,
-                choices=[UnifiedChatChoice(index=0, content=content, role="assistant", finish_reason=finish_reason)],
+                choices=[
+                    UnifiedChatChoice(
+                        index=0, content=content, role="assistant", finish_reason=finish_reason
+                    )
+                ],
                 stop_reason=finish_reason,
-                raw_response=ai_msg
+                raw_response=ai_msg,
             )

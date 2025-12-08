@@ -1,4 +1,3 @@
-
 from pathlib import Path
 import json
 from typing import List, Dict, Any
@@ -32,5 +31,3 @@ def list_result_jsons() -> List[Dict[str, str]]:
 
 
 router = APIRouter(prefix="", tags=["list-trees"])
-
-
