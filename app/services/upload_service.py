@@ -1,10 +1,12 @@
-from fastapi import UploadFile, HTTPException
-from typing import Dict
-import os
 import json
-from pageindex.page_index import page_index_main
-from app.models.page_index_options import PageIndexOptions
+import os
+from typing import Dict
+
+from fastapi import HTTPException, UploadFile
+
 from app.logging_config import get_logger
+from app.models.page_index_options import PageIndexOptions
+from pageindex.page_index import page_index_main
 
 logger = get_logger(__name__)
 

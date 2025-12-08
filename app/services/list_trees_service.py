@@ -1,6 +1,7 @@
-from pathlib import Path
 import json
-from typing import List, Dict
+from pathlib import Path
+from typing import Dict, List
+
 from fastapi import APIRouter
 
 RESULTS_DIR = Path("results")
