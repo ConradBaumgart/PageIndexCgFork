@@ -1,0 +1,18 @@
+[project]
+name = "pageindexcgfork"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "langchain-openai",
+    "openai",
+    "pymupdf",
+    "pypdf2",
+    "python-dotenv",
+    "python-multipart>=0.0.20",
+    "tiktoken",
+    "transformers",
+    "uvicorn",
+]
