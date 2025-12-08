@@ -16,3 +16,23 @@ dependencies = [
     "transformers",
     "uvicorn",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.8",
+]
+
+[tool.ruff]
+# Linting-Optionen
+target-version = "py312"
+line-length = 120
+extend-exclude = ["build", "dist", ".venv"]
+
+[tool.ruff.lint]
+select = ["I"]
+
+[tool.ruff.format]
+# Formatierer-Einstellungen
+quote-style = "double"            # "single" wenn du das bevorzugst
+indent-style = "space"            # "tab" wäre möglich
+skip-magic-trailing-comma = false # True → weniger aggressive Wraps

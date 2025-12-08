@@ -7,9 +7,10 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     handlers=[
         logging.StreamHandler(sys.stdout),  # logs to console
-        logging.FileHandler("logs/app.log", encoding="utf-8")  # logs to file
-    ]
+        logging.FileHandler("logs/app.log", encoding="utf-8"),  # logs to file
+    ],
 )
+
 
 # Optional: create a function to get a logger for each module
 def get_logger(name: str) -> logging.Logger:

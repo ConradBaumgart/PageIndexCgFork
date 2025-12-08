@@ -1,11 +1,14 @@
-from fastapi import FastAPI, File, HTTPException, UploadFile
 from contextlib import asynccontextmanager
 from typing import Dict, List
+
+from fastapi import FastAPI, File, UploadFile
+
 from app.logging_config import get_logger
 from app.services.list_trees_service import list_result_jsons
 from app.services.upload_service import handle_document_upload
 
 logger = get_logger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

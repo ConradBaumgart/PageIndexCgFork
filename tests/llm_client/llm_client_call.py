@@ -1,5 +1,5 @@
-
 from app.llm_client import LLMClient  # assuming your code is saved as llm_client.py
+
 
 def main():
     # Initialize the client
@@ -8,7 +8,7 @@ def main():
     # Prepare messages in OpenAI-style format
     messages = [
         {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": "Write a short motivational quote about learning."}
+        {"role": "user", "content": "Write a short motivational quote about learning."},
     ]
 
     # Generate response
@@ -24,6 +24,7 @@ def main():
     print("\nChoices:")
     for choice in response.choices or []:
         print(f"  [{choice.index}] {choice.role}: {choice.content}")
+
 
 if __name__ == "__main__":
     main()
