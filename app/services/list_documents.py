@@ -7,7 +7,7 @@ from fastapi import APIRouter
 RESULTS_DIR = Path("app/data/generated_trees")
 
 
-def list_result_jsons() -> List[Dict[str, str]]:
+def list_documents() -> List[Dict[str, str]]:
     """
     Scan the fixed `app/data/generated_trees/` directory recursively for `.json` files and return a list
     of `doc_name` strings.

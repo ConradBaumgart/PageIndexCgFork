@@ -13,7 +13,7 @@ logger = get_logger(__name__)
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "original_documents")
 
 
-async def handle_document_upload(file: UploadFile) -> Dict[str, str]:
+async def handle_upload_document(file: UploadFile) -> Dict[str, str]:
     """
     Validate and process a single uploaded PDF file.
     """
