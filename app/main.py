@@ -2,12 +2,12 @@ import os
 from contextlib import asynccontextmanager
 from typing import Dict, List
 
-from fastapi import FastAPI, File, UploadFile, Query
+from fastapi import FastAPI, File, Query, UploadFile
 
 from app.logging_config import get_logger
 from app.services.list_documents import list_documents
-from app.services.upload_document import handle_upload_document
 from app.services.query_documents import handle_query_documents
+from app.services.upload_document import handle_upload_document
 
 logger = get_logger(__name__)
 
@@ -43,11 +43,13 @@ async def list_available_documents() -> List[Dict[str, str]]:
 
 
 @app.get("/query_documents")
-async def query_documents(query: str = Query(..., description="The question or search query"), documents: List[str] = Query(
+async def query_documents(
+    query: str = Query(..., description="The question or search query"),
+    documents: List[str] = Query(
         ...,
         description="List of document names (repeat this query param)",
         min_items=1,
-    )
+    ),
 ) -> List[str]:
     """
     (Mock) Return content from documents relevant to the query.
