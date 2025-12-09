@@ -97,7 +97,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
             "end_index": node["end_index"],
             "node_id": node["node_id"],
             "text": node["text"],
-            "summar": node["summary"],
+            "summarry": node["summary"],
         }
     logger.info(f"node_map looks like {node_map}")
 
