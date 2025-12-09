@@ -2,8 +2,6 @@ import json
 from pathlib import Path
 from typing import Dict, List
 
-from fastapi import APIRouter
-
 RESULTS_DIR = Path("app/data/generated_trees")
 
 
@@ -29,6 +27,3 @@ def list_documents() -> List[Dict[str, str]]:
             continue
 
     return doc_infos
-
-
-router = APIRouter(prefix="", tags=["list-trees"])
