@@ -3,17 +3,17 @@ from pathlib import Path
 from typing import Dict, List
 
 from fastapi import HTTPException
-from app.logging_config import get_logger
-from pageindex.utils import remove_fields
 
 from app.llm_client import LLMClient
+from app.logging_config import get_logger
+from pageindex.utils import get_nodes, remove_fields
 
-logger = get_logger(__name__, level="debug")
+logger = get_logger(__name__)
 
 RESULTS_DIR = Path("app/data/generated_trees")
 
 
-def query_documents(query: str, documents: List[str]) -> List[str]:
+def handle_query_documents(query: str, documents: List[str]) -> List[str]:
     """
     tbd
     """
@@ -75,10 +75,23 @@ def query_documents(query: str, documents: List[str]) -> List[str]:
     Directly return the final JSON structure. Do not output anything else.
     """
     # 4. Step: get LLM client
-    client = LLMClient()
+    llm = LLMClient()
+
+    messages = []  #
+    messages.append({"role": "user", "content": search_prompt})
+
+    tree_search_result = llm.generate(messages)
+    logger.info(f"llm returned {tree_search_result.content}")
 
     # query LLM
+    node_map = get_nodes(tree)
+    relevant_nodes = []
+    for node_id in tree_search_result.content["node_list"]:
+        relevant_nodes.append(node_map[node_id])
+    logger.info(f"Relevant nodes are: {relevant_nodes}")
 
     # print/log nodes and reasoning
 
     # get nodes and return them (e.g. in easy dump for today)
+
+    return ["done", "with", "that"]
