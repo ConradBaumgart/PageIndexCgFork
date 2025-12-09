@@ -1,5 +1,11 @@
 import logging
 import sys
+from pathlib import Path
+
+LOG_PATH = Path("logs/app.log")
+
+# 1) Make sure the directory exists
+LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 # Configure root logger
 logging.basicConfig(
@@ -7,7 +13,7 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     handlers=[
         logging.StreamHandler(sys.stdout),  # logs to console
-        logging.FileHandler("logs/app.log", encoding="utf-8"),  # logs to file
+        logging.FileHandler(LOG_PATH, encoding="utf-8"),  # logs to file
     ],
 )
 
