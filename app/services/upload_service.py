@@ -10,7 +10,7 @@ from pageindex.page_index import page_index_main
 
 logger = get_logger(__name__)
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data")
+DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "original_documents")
 
 
 async def handle_document_upload(file: UploadFile) -> Dict[str, str]:
@@ -45,7 +45,7 @@ async def handle_document_upload(file: UploadFile) -> Dict[str, str]:
 
     # Save results
     pdf_name = os.path.splitext(os.path.basename(file_path))[0]
-    output_dir = "./results"
+    output_dir = "app/data/generated_trees"
     output_file = f"{output_dir}/{pdf_name}_structure.json"
     os.makedirs(output_dir, exist_ok=True)
 
