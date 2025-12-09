@@ -1,6 +1,7 @@
 import json
+import re
 from pathlib import Path
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from fastapi import HTTPException
 
@@ -13,7 +14,7 @@ logger = get_logger(__name__)
 RESULTS_DIR = Path("app/data/generated_trees")
 
 
-def handle_query_documents(query: str, documents: List[str]) -> List[str]:
+def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, Any]]:
     """
     tbd
     """
@@ -84,14 +85,35 @@ def handle_query_documents(query: str, documents: List[str]) -> List[str]:
     logger.info(f"llm returned {tree_search_result.content}")
 
     # query LLM
-    node_map = get_nodes(tree)
+    flattened_nodes = get_nodes(tree)
+    logger.info(f"flattend nodes looks like {flattened_nodes}")
+
+    ## transform flattened nodes into node map
+    node_map = {}
+    for node in flattened_nodes[0]["structure"]:
+        node_map[node["node_id"]] = {
+            "title": node["title"],
+            "start_index": node["start_index"],
+            "end_index": node["end_index"],
+            "node_id": node["node_id"],
+            "text": node["text"],
+            "summar": node["summary"],
+        }
+    logger.info(f"node_map looks like {node_map}")
+
     relevant_nodes = []
-    for node_id in tree_search_result.content["node_list"]:
+
+    llm_answer = tree_search_result.content
+
+    if llm_answer.startswith("```"):
+        llm_answer = re.sub(r"^```(?:json)?\s*", "", llm_answer, flags=re.IGNORECASE).strip()
+        llm_answer = re.sub(r"```$", "", llm_answer).strip()
+
+    tree_search_result_json = json.loads(llm_answer)
+    for node_id in tree_search_result_json["node_list"]:
         relevant_nodes.append(node_map[node_id])
     logger.info(f"Relevant nodes are: {relevant_nodes}")
 
-    # print/log nodes and reasoning
+    return_value = [{"document_name": documents[0], "nodes": relevant_nodes}]
 
-    # get nodes and return them (e.g. in easy dump for today)
-
-    return ["done", "with", "that"]
+    return return_value
