@@ -4,12 +4,12 @@ from typing import Dict, List
 
 from fastapi import APIRouter
 
-RESULTS_DIR = Path("results")
+RESULTS_DIR = Path("app/data/generated_trees")
 
 
-def list_result_jsons() -> List[Dict[str, str]]:
+def list_documents() -> List[Dict[str, str]]:
     """
-    Scan the fixed `results/` directory recursively for `.json` files and return a list
+    Scan the fixed `app/data/generated_trees/` directory recursively for `.json` files and return a list
     of `doc_name` strings.
     """
     if not RESULTS_DIR.exists() or not RESULTS_DIR.is_dir():
