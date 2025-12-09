@@ -12,4 +12,4 @@ SDK/*
 log/*
 logs/
 parts/*
-json_results/*
+app/data/*
