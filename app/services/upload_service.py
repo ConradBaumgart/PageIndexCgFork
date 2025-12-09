@@ -46,7 +46,7 @@ async def handle_document_upload(file: UploadFile) -> Dict[str, str]:
     # Save results
     pdf_name = os.path.splitext(os.path.basename(file_path))[0]
     output_dir = "app/data/generated_trees"
-    output_file = f"{output_dir}/{pdf_name}_structure.json"
+    output_file = f"{output_dir}/{pdf_name}.json"
     os.makedirs(output_dir, exist_ok=True)
 
     with open(output_file, "w", encoding="utf-8") as f:
