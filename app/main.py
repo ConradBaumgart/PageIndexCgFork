@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 from typing import Dict, List
 
@@ -9,10 +10,15 @@ from app.services.upload_document import handle_upload_document
 
 logger = get_logger(__name__)
 
+GENERATED_TREES_FOLDER = "app/data/generated_trees"
+ORIGINAL_DOCUMENTS_FOLDER = "app/data/original_documents"
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
+    os.makedirs(GENERATED_TREES_FOLDER, exist_ok=True)
+    os.makedirs(GENERATED_TREES_FOLDER, exist_ok=True)
     logger.info("Application starting up...")
     yield
     # Shutdown
