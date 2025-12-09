@@ -1,6 +1,6 @@
 import os
 from contextlib import asynccontextmanager
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from fastapi import FastAPI, File, Query, UploadFile
 
@@ -50,9 +50,10 @@ async def query_documents(
         description="List of document names (repeat this query param)",
         min_items=1,
     ),
-) -> List[str]:
+) -> List[Dict[str, Any]]:
     """
-    (Mock) Return content from documents relevant to the query.
+    (Work in Progress!) Return content from documents relevant to the query.
+    Currently, only 1 document is allowed to be provided. Pick one from list_available_documents.
     """
     return handle_query_documents(query, documents)
 
