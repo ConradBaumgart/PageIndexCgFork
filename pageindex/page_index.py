@@ -398,7 +398,7 @@ def extract_matching_page_pairs(toc_page, toc_physical_index, start_page_index):
     return pairs
 
 
-def calculate_page_offset(pairs):
+def calculate_page_offset(pairs) -> int:
     differences = []
     for pair in pairs:
         try:
@@ -410,7 +410,7 @@ def calculate_page_offset(pairs):
             continue
 
     if not differences:
-        return None
+        return 0 # Consider changing that as not differences might mean that something went wrong instead of "there is no offset"
 
     difference_counts = {}
     for diff in differences:
