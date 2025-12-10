@@ -584,7 +584,7 @@ def remove_structure_text(data):
     return data
 
 
-def check_token_limit(structure, limit=110000):
+def check_token_limit(structure, limit=110000): # TODO define limit in config
     list = structure_to_list(structure)
     for node in list:
         num_tokens = count_tokens_mistral(node["text"])
