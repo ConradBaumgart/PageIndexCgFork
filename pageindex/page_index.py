@@ -410,7 +410,7 @@ def calculate_page_offset(pairs) -> int:
             continue
 
     if not differences:
-        return 0 # Consider changing that as not differences might mean that something went wrong instead of "there is no offset"
+        return 0  # Consider changing that as not differences might mean that something went wrong instead of "there is no offset"
 
     difference_counts = {}
     for diff in differences:
