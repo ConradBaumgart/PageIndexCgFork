@@ -381,7 +381,8 @@ def remove_page_number(data):
     return data
 
 
-def extract_matching_page_pairs(toc_page, toc_physical_index, start_page_index):
+def extract_matching_page_pairs(toc_page, toc_physical_index, start_page_index) -> List[Dict]:
+    # note: toc_page is created by toc_transformer which uses LLM calls
     pairs = []
     for phy_item in toc_physical_index:
         for page_item in toc_page:
@@ -398,7 +399,7 @@ def extract_matching_page_pairs(toc_page, toc_physical_index, start_page_index):
     return pairs
 
 
-def calculate_page_offset(pairs) -> int:
+def calculate_page_offset(pairs: List[Dict]) -> int:
     differences = []
     for pair in pairs:
         try:
@@ -416,7 +417,7 @@ def calculate_page_offset(pairs) -> int:
     for diff in differences:
         difference_counts[diff] = difference_counts.get(diff, 0) + 1
 
-    most_common = max(difference_counts.items(), key=lambda x: x[1])[0]
+    most_common = max(difference_counts.items(), key=lambda x: x[1])[0] # Modus is calculated
 
     return most_common
 
