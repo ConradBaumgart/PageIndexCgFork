@@ -31,7 +31,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
         except (json.JSONDecodeError, OSError):
             continue
 
-    logger.info(f"{len(tree_list)} documents where found from {len(documents)} documents requested.")
+    logger.info("%d documents were found from %d documents requested.", len(tree_list), len(documents))
 
     if len(tree_list) == 0:
         raise HTTPException(status_code=404, detail=f"No documents were found.")
@@ -54,7 +54,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
         print(f"Unexpected error: {e}")
 
     tree_without_text = remove_fields(tree, "text")
-    logger.debug(f"Tree without text will be provided: {tree_without_text}")
+    logger.debug("Tree without text will be provided: %s", tree_without_text)
 
     # 3. Step: create prompt to select nodes
 
@@ -82,11 +82,11 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     messages.append({"role": "user", "content": search_prompt})
 
     tree_search_result = llm.generate(messages)
-    logger.info(f"llm returned {tree_search_result.content}")
+    logger.info("llm returned %s", tree_search_result.content)
 
     # query LLM
     flattened_nodes = get_nodes(tree)
-    logger.info(f"flattend nodes looks like {flattened_nodes}")
+    logger.info("flattend nodes looks like %s", flattened_nodes)
 
     ## transform flattened nodes into node map
     node_map = {}
@@ -99,7 +99,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
             "text": node["text"],
             "summarry": node["summary"],
         }
-    logger.info(f"node_map looks like {node_map}")
+    logger.info("node_map looks like %s", node_map)
 
     relevant_nodes = []
 
@@ -112,7 +112,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     tree_search_result_json = json.loads(llm_answer)
     for node_id in tree_search_result_json["node_list"]:
         relevant_nodes.append(node_map[node_id])
-    logger.info(f"Relevant nodes are: {relevant_nodes}")
+    logger.info("Relevant nodes are: %s", relevant_nodes)
 
     return_value = [{"document_name": documents[0], "nodes": relevant_nodes}]
 
