@@ -9,7 +9,7 @@ LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 # Configure root logger
 logging.basicConfig(
-    level=logging.INFO,  # INFO or DEBUG for more details
+    level=logging.DEBUG,  # INFO or DEBUG for more details
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     handlers=[
         logging.StreamHandler(sys.stdout),  # logs to console
