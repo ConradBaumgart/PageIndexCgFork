@@ -91,20 +91,20 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     logger.info("llm returned %s", tree_search_result.content)
 
     # query LLM
-    flattened_nodes = get_nodes(tree["structure"])  # Does this fix the bug?
+    flattened_nodes = get_nodes(tree["structure"])  # Does this fix the bug? # Note, this does not contain information about the document
 
     logger.debug("flattend nodes looks like %r", flattened_nodes)
 
     ## transform flattened nodes into node map
     node_map = {}
-    for node in flattened_nodes[0]["structure"]:
+    for node in flattened_nodes: 
         node_map[node["node_id"]] = {
             "title": node["title"],
             "start_index": node["start_index"],
             "end_index": node["end_index"],
             "node_id": node["node_id"],
             "text": node["text"],
-            "summarry": node["summary"],
+            "summary": node["summary"],
         }
     logger.debug("node_map looks like %r", node_map)
 
