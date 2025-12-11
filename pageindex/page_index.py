@@ -417,7 +417,7 @@ def calculate_page_offset(pairs: List[Dict]) -> int:
     for diff in differences:
         difference_counts[diff] = difference_counts.get(diff, 0) + 1
 
-    most_common = max(difference_counts.items(), key=lambda x: x[1])[0] # Modus is calculated
+    most_common = max(difference_counts.items(), key=lambda x: x[1])[0]  # Modus is calculated
 
     return most_common
 
