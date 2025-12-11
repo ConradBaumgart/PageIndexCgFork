@@ -54,4 +54,4 @@ async def handle_upload_document(file: UploadFile) -> Dict[str, str]:
 
     logger.info(f"Tree structure saved to: {output_file}")
 
-    return {"filename": file.filename}
+    return {"file was processed and stored": file.filename}
