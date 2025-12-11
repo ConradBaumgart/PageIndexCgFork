@@ -212,11 +212,11 @@ def write_node_id(data, node_id=0):
     return node_id
 
 
-def get_nodes(structure):
+def get_nodes(structure: List[Dict[str, Any]]) -> List[Dict]:
     if isinstance(structure, dict):
         structure_node = copy.deepcopy(structure)
-        structure_node.pop("nodes", None)
-        nodes = [structure_node]
+        structure_node.pop("nodes", None) # Remove children from deepcopy of Tree
+        nodes = [structure_node] # Set nodes as List of Parent Nodes
         for key in list(structure.keys()):
             if "nodes" in key:
                 nodes.extend(get_nodes(structure[key]))
