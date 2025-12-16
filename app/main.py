@@ -52,8 +52,8 @@ async def query_documents(
     ),
 ) -> List[Dict[str, Any]]:
     """
-    (Work in Progress!) Return content from documents relevant to the query.
-    Currently, only 1 document is allowed to be provided. Pick one from list_available_documents.
+    Return content from documents relevant to the query.
+    Currently, information will be retrieved from 1 document. The document with the most relevance for the query will be used.
     """
     return handle_query_documents(query, documents)
 
