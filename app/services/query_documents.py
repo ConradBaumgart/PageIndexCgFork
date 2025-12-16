@@ -41,8 +41,58 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
 
     # Current assumption: only one document is queried
     if len(tree_list) > 1:
-        raise HTTPException(status_code=404, detail=f"Currently only 1 document can be queried.")
-    tree_path = tree_list[0]  # change later!
+        logger.info("Start Document selection process.")
+        document_descriptions = []
+        for tree_path in tree_list:
+            try:
+                with open(tree_path, "r", encoding="utf-8") as f:
+                    tree = json.load(f)
+            except FileNotFoundError:
+                logger.exception("Error: File not found.")
+            except json.JSONDecodeError as e:
+                logger.exception("Error doecing JSON")
+            except Exception as e:
+                logger.exception("Unexpected error")
+            doc_dict = {"doc_name": tree["doc_name"], "doc_path": tree_path, "doc_description": tree["doc_description"]}
+            document_descriptions.append(doc_dict)
+
+        doc_search_prompt = f""" 
+            You are given a list of documents with their file names, and descriptions. Your task is to select one document that may contain information relevant to answering the user query.
+            
+            Query: {query}
+            
+            Documents: {document_descriptions}
+            
+            Response Format:
+            {{
+                "thinking": "<Your reasoning for document selection>",
+                "answer": <Python list of relevant doc_path>, e.g. ['data/MIL-STD-111.pdf']. Return [] if no document is relevant.
+            }}
+            
+            Return only the JSON structure, with no additional output.
+            """
+        logger.debug("Prompt to seach for nodes: %r", doc_search_prompt)
+
+        llm = LLMClient()
+
+        messages = []  #
+        messages.append({"role": "user", "content": doc_search_prompt})
+
+        logger.info("Llm will be called with %s", search_prompt[:100])
+        doc_search_result = llm.generate(messages)
+        logger.info("llm returned %s", doc_search_result.content)
+
+        # Answer from LLM contains backticks to indicate a JSON file
+        llm_answer = doc_search_result.content
+        if llm_answer.startswith("```"):
+            llm_answer = re.sub(r"^```(?:json)?\s*", "", llm_answer, flags=re.IGNORECASE).strip()
+            llm_answer = re.sub(r"```$", "", llm_answer).strip()
+
+        doc_search_result_json = json.loads(llm_answer)
+        if len(doc_search_result_json["answer"]) > 1:
+            raise HTTPException(status_code=404, detail=f"Too many documents returned.")
+        logger.debug("llm returned with %s", doc_search_result_json["thinking"])
+        tree_path = doc_search_result_json["answer"][0]
 
     # 2. Step: remove text from nodes (see utils.remove_fields)
 
@@ -91,13 +141,15 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     logger.info("llm returned %s", tree_search_result.content)
 
     # query LLM
-    flattened_nodes = get_nodes(tree["structure"])  # Does this fix the bug? # Note, this does not contain information about the document
+    flattened_nodes = get_nodes(
+        tree["structure"]
+    )  # Does this fix the bug? # Note, this does not contain information about the document
 
     logger.debug("flattend nodes looks like %r", flattened_nodes)
 
     ## transform flattened nodes into node map
     node_map = {}
-    for node in flattened_nodes: 
+    for node in flattened_nodes:
         node_map[node["node_id"]] = {
             "title": node["title"],
             "start_index": node["start_index"],
