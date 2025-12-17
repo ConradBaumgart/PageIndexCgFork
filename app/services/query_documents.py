@@ -16,8 +16,24 @@ RESULTS_DIR = Path("app/data/generated_trees")
 
 def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, Any]]:
     """
-    tbd
+    Identify and extract relevant content from a collection of documents based on a given query.
+
+    This function performs the following steps:
+    1. Evaluates the relevance of each document to the provided query using an LLM (Large Language Model).
+    2. Selects the most relevant document(s).
+    3. Extracts specific nodes or segments from the selected document(s) that are most pertinent to the query.
+
+    Args:
+        query (str): The user query or search term to evaluate against the documents.
+        documents (List[str]): A list of document contents as strings.
+
+    Returns:
+        List[Dict[str, Any]]: A list of dictionaries where each dictionary contains:
+            - "document": The original document text or identifier.
+            - "relevance_score": A numeric score indicating how relevant the document is to the query.
+            - "relevant_nodes": A list of extracted text segments or nodes that match the query context.
     """
+
     logger.info("Call to handle_query_documents with arguments query=%s and documents=%s", query, documents)
 
     # 1. Step: get trees according to documents and query TODO into seperate function?
@@ -91,10 +107,15 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
             llm_answer = re.sub(r"```$", "", llm_answer).strip()
 
         doc_search_result_json = json.loads(llm_answer)
-        if len(doc_search_result_json["answer"]) > 1:
+        selected_document = doc_search_result_json["answer"]
+        if len(selected_document) == 0:
+            logger.info("llm did not find relevant documents with reasoning %s", doc_search_result_json["thinking"])
+            return [{"document_name": "", "nodes": ""}]
+        elif len(selected_document) == 1:
+            tree_path = selected_document[0]
+            logger.debug("llm returned %s with reasoning %s", selected_document, doc_search_result_json["thinking"])
+        else:
             raise HTTPException(status_code=404, detail=f"Too many documents returned.")
-        logger.debug("llm returned with %s", doc_search_result_json["thinking"])
-        tree_path = doc_search_result_json["answer"][0]
 
     # 2. Step: remove text from nodes (see utils.remove_fields) TODO as method into tree class
 
