@@ -134,7 +134,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
 
     llm = LLMClient()
 
-    messages = []  #
+    messages = []  
     messages.append({"role": "user", "content": tree_search_prompt})
 
     logger.info("Llm will be called with %s", tree_search_prompt[:100])
@@ -144,11 +144,11 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     # query LLM
     flattened_nodes = get_nodes(
         tree["structure"]
-    )  # Does this fix the bug? # Note, this does not contain information about the document
+    )
 
     logger.debug("flattend nodes looks like %r", flattened_nodes)
 
-    ## transform flattened nodes into node map
+    ## transform flattened nodes into node map TODO add to tree class
     node_map = {}
     for node in flattened_nodes:
         node_map[node["node_id"]] = {
