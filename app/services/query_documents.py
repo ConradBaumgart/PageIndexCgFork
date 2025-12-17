@@ -54,7 +54,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
 
     if len(tree_list) == 0:
         raise HTTPException(status_code=404, detail=f"No documents were found.")
-    
+
     if len(tree_list) == 1:
         tree_path = tree_list[0]
 
@@ -102,7 +102,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
 
         # Answer from LLM contains backticks to indicate a JSON file
         llm_answer = doc_search_result.content
-        if llm_answer.startswith("```"): # will be replaced by structured output
+        if llm_answer.startswith("```"):  # will be replaced by structured output
             llm_answer = re.sub(r"^```(?:json)?\s*", "", llm_answer, flags=re.IGNORECASE).strip()
             llm_answer = re.sub(r"```$", "", llm_answer).strip()
 
@@ -155,7 +155,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
 
     llm = LLMClient()
 
-    messages = []  
+    messages = []
     messages.append({"role": "user", "content": tree_search_prompt})
 
     logger.info("Llm will be called with %s", tree_search_prompt[:100])
@@ -163,9 +163,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     logger.info("llm returned %s", tree_search_result.content)
 
     # query LLM
-    flattened_nodes = get_nodes(
-        tree["structure"]
-    )
+    flattened_nodes = get_nodes(tree["structure"])
 
     logger.debug("flattend nodes looks like %r", flattened_nodes)
 
@@ -185,8 +183,8 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     relevant_nodes = []
 
     # Answer from LLM contains backticks to indicate a JSON file
-    llm_answer = tree_search_result.content 
-    if llm_answer.startswith("```"): # will be replaced by structured output
+    llm_answer = tree_search_result.content
+    if llm_answer.startswith("```"):  # will be replaced by structured output
         llm_answer = re.sub(r"^```(?:json)?\s*", "", llm_answer, flags=re.IGNORECASE).strip()
         llm_answer = re.sub(r"```$", "", llm_answer).strip()
 
@@ -196,7 +194,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
 
     logger.info("Relevant nodes are: %s", relevant_nodes)
 
-    # 4. return relevant nodes 
+    # 4. return relevant nodes
     return_value = [
         {"document_name": tree["doc_name"], "nodes": relevant_nodes}
     ]  # TODO: change documents[0] cause in any case only 1 Document will be returned
