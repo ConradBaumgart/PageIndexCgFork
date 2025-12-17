@@ -20,7 +20,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     """
     logger.info("Call to handle_query_documents with arguments query=%s and documents=%s", query, documents)
 
-    # 1. Step: get trees according to documents
+    # 1. Step: get trees according to documents and query TODO into seperate function?
     tree_list = []
     for json_path in RESULTS_DIR.rglob("*.json"):
         try:
@@ -38,8 +38,10 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
 
     if len(tree_list) == 0:
         raise HTTPException(status_code=404, detail=f"No documents were found.")
+    
+    if len(tree_list) == 1:
+        tree_path = tree_list[0]
 
-    # Current assumption: only one document is queried
     if len(tree_list) > 1:
         logger.info("Start Document selection process.")
         document_descriptions = []
@@ -78,13 +80,13 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
         messages = []  #
         messages.append({"role": "user", "content": doc_search_prompt})
 
-        logger.info("Llm will be called with %s", search_prompt[:100])
+        logger.info("Llm will be called with %s", doc_search_prompt[:100])
         doc_search_result = llm.generate(messages)
         logger.info("llm returned %s", doc_search_result.content)
 
         # Answer from LLM contains backticks to indicate a JSON file
         llm_answer = doc_search_result.content
-        if llm_answer.startswith("```"):
+        if llm_answer.startswith("```"): # will be replaced by structured output
             llm_answer = re.sub(r"^```(?:json)?\s*", "", llm_answer, flags=re.IGNORECASE).strip()
             llm_answer = re.sub(r"```$", "", llm_answer).strip()
 
@@ -94,7 +96,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
         logger.debug("llm returned with %s", doc_search_result_json["thinking"])
         tree_path = doc_search_result_json["answer"][0]
 
-    # 2. Step: remove text from nodes (see utils.remove_fields)
+    # 2. Step: remove text from nodes (see utils.remove_fields) TODO as method into tree class
 
     try:
         with open(tree_path, "r", encoding="utf-8") as f:
@@ -109,9 +111,9 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     tree_without_text = remove_fields(tree, "text")
     logger.debug("Tree without text will be provided: %r", tree_without_text)
 
-    # 3. Step: create prompt to select nodes
+    # 3. Step: select nodes TODO into seperate function?
 
-    search_prompt = f"""
+    tree_search_prompt = f"""
     You are given a question and a tree structure of a document.
     Each node contains a node id, node title, and a corresponding summary.
     Your task is to find all nodes that are likely to contain the answer to the question.
@@ -128,15 +130,14 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     }}
     Directly return the final JSON structure. Do not output anything else.
     """
-    logger.debug("Prompt to seach for nodes: %r", search_prompt)
+    logger.debug("Prompt to seach for nodes: %r", tree_search_prompt)
 
-    # 4. Step: get LLM client
     llm = LLMClient()
 
     messages = []  #
-    messages.append({"role": "user", "content": search_prompt})
+    messages.append({"role": "user", "content": tree_search_prompt})
 
-    logger.info("Llm will be called with %s", search_prompt[:100])
+    logger.info("Llm will be called with %s", tree_search_prompt[:100])
     tree_search_result = llm.generate(messages)
     logger.info("llm returned %s", tree_search_result.content)
 
@@ -163,8 +164,8 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     relevant_nodes = []
 
     # Answer from LLM contains backticks to indicate a JSON file
-    llm_answer = tree_search_result.content
-    if llm_answer.startswith("```"):
+    llm_answer = tree_search_result.content 
+    if llm_answer.startswith("```"): # will be replaced by structured output
         llm_answer = re.sub(r"^```(?:json)?\s*", "", llm_answer, flags=re.IGNORECASE).strip()
         llm_answer = re.sub(r"```$", "", llm_answer).strip()
 
@@ -174,8 +175,9 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
 
     logger.info("Relevant nodes are: %s", relevant_nodes)
 
+    # 4. return relevant nodes 
     return_value = [
-        {"document_name": documents[0], "nodes": relevant_nodes}
+        {"document_name": tree["doc_name"], "nodes": relevant_nodes}
     ]  # TODO: change documents[0] cause in any case only 1 Document will be returned
 
     return return_value
