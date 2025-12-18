@@ -1,40 +1,54 @@
-# 🌲 PageIndex Tree Structure
-PageIndex can transform lengthy PDF documents into a semantic **tree structure**, similar to a _"table of contents"_ but optimized for use with Large Language Models (LLMs). It's ideal for: financial reports, regulatory filings, academic textbooks, legal or technical manuals, and any document that exceeds LLM context limits.
+# 🌲 PageIndex Fork for RhAI
+PageIndex can transform lengthy PDF documents into a semantic tree structure. This repository is a fork of [VectifyAI-PageIndex](https://github.com/VectifyAI/PageIndex).
 
-Here is an example output. See more [example documents](https://github.com/VectifyAI/PageIndex/tree/main/tests/pdfs) and [generated trees](https://github.com/VectifyAI/PageIndex/tree/main/tests/results).
+<details>
+<summary><strong>Here is an example output.</strong></summary>
 
 ```jsonc
 ...
 {
-  "title": "Financial Stability",
-  "node_id": "0006",
-  "start_index": 21,
-  "end_index": 22,
-  "summary": "The Federal Reserve ...",
-  "nodes": [
+  "doc_name": "MIL-STD-1316F.pdf",
+  "doc_description": "This document is a comprehensive design criteria standard for fuze safety and arming systems in military munitions, detailing requirements for explosive materials, safety features, environmental resilience, and compliance with international agreements.",
+  "structure": [
     {
-      "title": "Monitoring Financial Vulnerabilities",
-      "node_id": "0007",
-      "start_index": 22,
-      "end_index": 28,
-      "summary": "The Federal Reserve's monitoring ..."
+      "title": "Preface",
+      "start_index": 1,
+      "end_index": 8,
+      "node_id": "0000",
+      "text": "MIL -STD -1316F  \n18 August 2017  \n \nSUPERSEDING  \nMIL -STD -1316E  \n10 JULY  1998  \n \n \nDEPARTMENT OF DEFENSE  \nDESIGN CRITERIA STANDARD ...",
+      "summary": "The partial document is a section of MIL-STD-1316F, a design criteria standard for fuze design and safety criteria issued by ..."
     },
     {
-      "title": "Domestic and International Cooperation and Coordination",
-      "node_id": "0008",
-      "start_index": 28,
-      "end_index": 31,
-      "summary": "In 2023, the Federal Reserve collaborated ..."
+      "title": "SCOPE",
+      "start_index": 8,
+      "end_index": 8,
+      "nodes": [
+        {
+          "title": "Scope",
+          "start_index": 8,
+          "end_index": 8,
+          "node_id": "0002",
+          "text": "MIL-STD -1316F  \n1 \n 1. SCOPE  \n1.1 Scope .  This standard establishes ...",
+          "summary": "The partial document outlines the scope and applicability of the MIL-STD-1316F standard, which establishes design safety criteria for fuzes and ..."
+        },
+        {
+          "title": "Applicability",
+          "start_index": 8,
+          "end_index": 8,
+          "node_id": "0003",
+          "text": "... 1.2 Applicability .  This standard applies to the design of fuzes and S&A devices ...",
+          "summary": "The partial document outlines the scope and applicability of the MIL-STD-1316F standard, which establishes design safety criteria for fuzes and ..."
+        }
+      ]
     }
-  ]
 }
 ...
 ```
+</details>
 
- You can either generate the PageIndex tree structure with this open-source repo, or try our [API](https://docs.pageindex.ai/quickstart) service.
+## Configs
 
----
-
+env: which model and access credentials
 
 
 <details>
@@ -52,3 +66,13 @@ You can customize the processing with additional optional arguments:
 --if-add-doc-description Add doc description (yes/no, default: yes)
 ```
 </details>
+
+
+## Operations
+run as fast api backend
+provide .env file
+use dockerfile for 
+ask Alpcan for Feedback
+
+## API
+
