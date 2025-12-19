@@ -61,7 +61,7 @@ For Development:
 - Run as FastAPI app e.g. with `uv run uvicorn app.main:app --host 0.0.0.0 --port 8001`
 - Run ruff checks with `uv run ruff format .` and `uv run ruff check . --fix`
 
-For Deployment:
+For Operations:
 - Use the dockerfile to build the image
 - Start an container e.g. with `podman run -d -p 8001:8001 --name my-container my-image:latest`
 - The service is available under http://localhost:8001
