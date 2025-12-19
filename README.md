@@ -49,7 +49,7 @@ PageIndex can transform lengthy PDF documents into a semantic tree structure. Th
 ## Configs
 
 | File                             | Settings 
-| -------------------------------- | ---
+| -------------------------------- | ------------------------------------------------------------------------------------
 | .env file                        | Set wich model to use and add credentials
 | app/models/page_index_options.py | Set detail settings for PageIndex e.g. how many pages to scan for a table of content
 
