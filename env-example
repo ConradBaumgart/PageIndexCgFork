@@ -1,4 +1,4 @@
-LLM_PROVIDER=
+LLM_PROVIDER= # either "azure" or "mistral"
 
 MISTRAL_ENDPOINT=
 MISTRAL_API_KEY=
