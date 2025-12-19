@@ -2,7 +2,7 @@
 PageIndex can transform lengthy PDF documents into a semantic tree structure. This repository is a fork of [VectifyAI-PageIndex](https://github.com/VectifyAI/PageIndex).
 
 <details>
-<summary><strong>Here is an example output.</strong></summary>
+<summary><strong>Here is an example of a tree structure.</strong></summary>
 
 ```jsonc
 ...
@@ -50,22 +50,23 @@ PageIndex can transform lengthy PDF documents into a semantic tree structure. Th
 
 | File                             | Settings 
 | -------------------------------- | ---
-| .env file                        | which model and access credentials
-| app/models/page_index_options.py | detailed settings for PageIndex e.g. how many pages to scan for a table of content
+| .env file                        | Set wich model to use and add credentials
+| app/models/page_index_options.py | Set detail settings for PageIndex e.g. how many pages to scan for a table of content
 
 
 ## DevOps
 
 For Development:
 - Create an .env file according to the env-example file
-- Run as FastAPI app e.g. with `uv run uvicorn app.main:app --host 0.0.0.0 --port 8000`
+- Run as FastAPI app e.g. with `uv run uvicorn app.main:app --host 0.0.0.0 --port 8001`
 - Run ruff checks with `uv run ruff format .` and `uv run ruff check . --fix`
 
 For Deployment:
 - Use the dockerfile to build the image
 - Start an container e.g. with `podman run -d -p 8001:8001 --name my-container my-image:latest`
+- The service is available under http://localhost:8001
 - Call endpoints e.g. with `curl -H "Accept: application/json" http://localhost:8001/list_available_documents`
-
+- Note: Using checkpoints is not mandatory; they are an optional feature for container state persistence.
 
 <!-- AUTO-GENERATED-OPENAPI:START -->
 
