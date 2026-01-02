@@ -1,9 +1,9 @@
 import os
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
-from openai import OpenAI, AzureOpenAI
 
 from dotenv import load_dotenv
+from openai import AzureOpenAI, OpenAI
 
 load_dotenv()
 PROVIDER = os.getenv("LLM_PROVIDER")  # "mistral" or "azure"
