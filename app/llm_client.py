@@ -1,6 +1,7 @@
 import os
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
+from openai import OpenAI, AzureOpenAI
 
 from dotenv import load_dotenv
 
@@ -36,23 +37,16 @@ class LLMClient:
         self.client = self._init_client()
 
     def _init_client(self):
-        if self.provider == "mistral":
-            from openai import OpenAI
-
-            return OpenAI(
-                api_key=os.getenv("MISTRAL_API_KEY"),
-                base_url=os.getenv("MISTRAL_ENDPOINT"),
+        if PROVIDER == "mistral":
+            return OpenAI(api_key=os.getenv("MISTRAL_API_KEY"),
+                            base_url=os.getenv("MISTRAL_ENDPOINT"))
+        elif PROVIDER == "azure":
+            return AzureOpenAI(
+                api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+                azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+                api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
             )
-        elif self.provider == "azure":
-            from langchain_openai import AzureChatOpenAI
 
-            return AzureChatOpenAI(
-                openai_api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
-                azure_deployment=os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME"),
-                temperature=0,
-            )
-        else:
-            raise ValueError(f"Unsupported provider: {self.provider}")
 
     def generate(
         self, messages: List[Dict[str, str]]
