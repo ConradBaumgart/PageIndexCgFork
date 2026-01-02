@@ -96,9 +96,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
         messages = []  #
         messages.append({"role": "user", "content": doc_search_prompt})
 
-        logger.info("Llm will be called with %s", doc_search_prompt[:100])
         doc_search_result = llm.generate(messages)
-        logger.info("llm returned %s", doc_search_result.content)
 
         # Answer from LLM contains backticks to indicate a JSON file
         llm_answer = doc_search_result.content
@@ -151,16 +149,14 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     }}
     Directly return the final JSON structure. Do not output anything else.
     """
-    logger.debug("Prompt to seach for nodes: %r", tree_search_prompt)
+    logger.debug("Prompt to search for nodes: %r", tree_search_prompt)
 
     llm = LLMClient()
 
     messages = []
     messages.append({"role": "user", "content": tree_search_prompt})
 
-    logger.info("Llm will be called with %s", tree_search_prompt[:100])
     tree_search_result = llm.generate(messages)
-    logger.info("llm returned %s", tree_search_result.content)
 
     # query LLM
     flattened_nodes = get_nodes(tree["structure"])

@@ -4,6 +4,9 @@ from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
 from openai import AzureOpenAI, OpenAI
+from app.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 load_dotenv()
 PROVIDER = os.getenv("LLM_PROVIDER")  # "mistral" or "azure"
@@ -56,6 +59,7 @@ class LLMClient:
         messages: [{'role':'system'|'user'|'assistant', 'content': '...'}]
         Returns LLMResponse with provider-agnostic fields.
         """
+        logger.info("LLM will be called with %s", str(messages)[:300])
         resp = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
@@ -73,6 +77,9 @@ class LLMClient:
 
         primary = resp.choices[0]
         msg = getattr(primary, "message", None)
+
+        logger.info("LLM returned %s", msg.content[:100])
+        logger.debug("Full response of LLM is %r",resp)
 
         return LLMResponse(
             content=getattr(msg, "content", None),
