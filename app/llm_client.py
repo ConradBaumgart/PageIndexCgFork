@@ -17,7 +17,6 @@ class UnifiedChatResponse:
     usage: Optional[Dict[str, int]]  # {'prompt_tokens':..., 'completion_tokens':..., 'total_tokens':...}
     model: Optional[str]
     created: Optional[int]
-    stop_reason: Optional[str] = None
     raw_response: Any = None
 
 
@@ -82,6 +81,5 @@ class LLMClient:
             usage=usage,
             model=getattr(resp, "model", self.model),  # fall back to stored model/deployment
             created=getattr(resp, "created", None),
-            stop_reason=getattr(primary, "finish_reason", None),
             raw_response=resp,
         )
