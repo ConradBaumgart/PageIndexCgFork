@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
 from openai import AzureOpenAI, OpenAI
+
 from app.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -79,7 +80,7 @@ class LLMClient:
         msg = getattr(primary, "message", None)
 
         logger.info("LLM returned %s", msg.content[:100])
-        logger.debug("Full response of LLM is %r",resp)
+        logger.debug("Full response of LLM is %r", resp)
 
         return LLMResponse(
             content=getattr(msg, "content", None),
