@@ -21,9 +21,6 @@ def main():
     print(f"Finish Reason: {response.finish_reason}")
     print(f"Model: {response.model}")
     print(f"Usage: {response.usage}")
-    print("\nChoices:")
-    for choice in response.choices or []:
-        print(f"  [{choice.index}] {choice.role}: {choice.content}")
 
 
 if __name__ == "__main__":

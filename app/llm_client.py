@@ -9,15 +9,6 @@ load_dotenv()
 PROVIDER = os.getenv("LLM_PROVIDER")  # "mistral" or "azure"
 
 
-# @dataclass
-# class UnifiedChatChoice:
-#     index: int
-#     content: str
-#     role: Optional[str] = None
-#     finish_reason: Optional[str] = None
-#     tool_calls: Optional[List[Dict[str, Any]]] = None
-
-
 @dataclass
 class UnifiedChatResponse:
     content: str
@@ -85,16 +76,6 @@ class LLMClient:
         primary = resp.choices[0]
         msg = getattr(primary, "message", None)
 
-        # choice = UnifiedChatChoice(
-        #     index=0,
-        #     content=getattr(msg, "content", None),
-        #     role=getattr(msg, "role", None),
-        #     finish_reason=getattr(primary, "finish_reason", None),
-        #     tool_calls=getattr(msg, "tool_calls", None),
-        # )
-
-        # choices = [choice]
-
         return UnifiedChatResponse(
             content=getattr(msg, "content", None),
             role=getattr(msg, "role", None),
@@ -102,7 +83,6 @@ class LLMClient:
             usage=usage,
             model=getattr(resp, "model", self.model),  # fall back to stored model/deployment
             created=getattr(resp, "created", None),
-            # choices=choices,
             stop_reason=getattr(primary, "finish_reason", None),
             raw_response=resp,
         )
