@@ -62,7 +62,7 @@ class LLMClient:
             temperature=0.0,
         )
 
-        # Normalize usage
+        # Normalize usage as different models might return different usage metrics
         usage = None
         if getattr(resp, "usage", None):
             usage = {
