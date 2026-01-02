@@ -1,7 +1,7 @@
-
 """
 Uses the OpenAPI documentation in openapi.json to create a Markdown version and adds it to README.md file.
 """
+
 import json
 import re
 from pathlib import Path
@@ -9,14 +9,17 @@ from typing import Any, Dict, List, Optional
 
 MD_TITLE = "## API Reference"
 README_START = "<!-- AUTO-GENERATED-OPENAPI:START -->"
-README_END   = "<!-- AUTO-GENERATED-OPENAPI:END -->"
+README_END = "<!-- AUTO-GENERATED-OPENAPI:END -->"
+
 
 def _md_escape(text: str) -> str:
     return text.replace("|", r"\|").replace("<", "&lt;").replace(">", "&gt;")
 
+
 def _schema_name(ref: str) -> str:
     # e.g., "#/components/schemas/Order" -> "Order"
     return ref.split("/")[-1]
+
 
 def _render_schema(schema: Dict[str, Any], components: Dict[str, Any], depth: int = 0) -> str:
     """Render a JSON schema into a compact Markdown table."""
@@ -30,7 +33,7 @@ def _render_schema(schema: Dict[str, Any], components: Dict[str, Any], depth: in
         lines.append(f"**Schema**: `{name}`")
         resolved = components.get("schemas", {}).get(name, {})
         if resolved:
-            lines.append(_render_schema(resolved, components, depth+1))
+            lines.append(_render_schema(resolved, components, depth + 1))
         return "\n".join(lines)
 
     typ = schema.get("type")
@@ -44,7 +47,7 @@ def _render_schema(schema: Dict[str, Any], components: Dict[str, Any], depth: in
     if typ == "array":
         items = schema.get("items", {})
         lines.append("- **items**:")
-        lines.append(_render_schema(items, components, depth+1))
+        lines.append(_render_schema(items, components, depth + 1))
 
     props = schema.get("properties") or {}
     required = set(schema.get("required") or [])
@@ -72,6 +75,7 @@ def _render_schema(schema: Dict[str, Any], components: Dict[str, Any], depth: in
         example = schema["examples"][0]
     if example is not None:
         import json as _json
+
         lines.append("\n**Example**")
         lines.append("```json")
         lines.append(_json.dumps(example, ensure_ascii=False, indent=2))
@@ -79,10 +83,16 @@ def _render_schema(schema: Dict[str, Any], components: Dict[str, Any], depth: in
 
     return "\n".join(lines)
 
+
 def _render_parameters(params: List[Dict[str, Any]], components: Dict[str, Any]) -> str:
     if not params:
         return ""
-    lines = ["**Parameters**", "", "| Name | In | Required | Type | Description |", "|------|----|----------|------|-------------|"]
+    lines = [
+        "**Parameters**",
+        "",
+        "| Name | In | Required | Type | Description |",
+        "|------|----|----------|------|-------------|",
+    ]
     for p in params:
         name = p.get("name", "")
         _in = p.get("in", "")
@@ -92,6 +102,7 @@ def _render_parameters(params: List[Dict[str, Any]], components: Dict[str, Any])
         desc = p.get("description", "") or ""
         lines.append(f"| `{name}` | `{_in}` | {req} | `{typ}` | {_md_escape(desc)} |")
     return "\n".join(lines)
+
 
 def _render_request_body(rb: Dict[str, Any], components: Dict[str, Any]) -> str:
     if not rb:
@@ -107,12 +118,13 @@ def _render_request_body(rb: Dict[str, Any], components: Dict[str, Any]) -> str:
         lines.append(_render_schema(schema, components))
     return "\n".join(lines)
 
+
 def _render_responses(responses: Dict[str, Any], components: Dict[str, Any]) -> str:
     if not responses:
         return ""
     lines = ["**Responses**"]
     for status, resp in responses.items():
-        lines.append(f"\n- **{status}**: {_md_escape(resp.get('description',''))}")
+        lines.append(f"\n- **{status}**: {_md_escape(resp.get('description', ''))}")
         content = resp.get("content", {})
         for ctype, spec in content.items():
             lines.append(f"  - _Content-Type_: `{ctype}`")
@@ -121,6 +133,7 @@ def _render_responses(responses: Dict[str, Any], components: Dict[str, Any]) -> 
             if rendered.strip():
                 lines.append(rendered)
     return "\n".join(lines)
+
 
 def openapi_to_markdown(schema: Dict[str, Any]) -> str:
     info = schema.get("info", {})
@@ -182,6 +195,7 @@ def openapi_to_markdown(schema: Dict[str, Any]) -> str:
 
     return "\n".join(md).strip() + "\n"
 
+
 def update_readme_section(readme_path: Path, content: str) -> None:
     original = readme_path.read_text(encoding="utf-8") if readme_path.exists() else ""
     block = f"{README_START}\n\n{content}\n{README_END}"
@@ -202,10 +216,12 @@ def update_readme_section(readme_path: Path, content: str) -> None:
     readme_path.write_text(new, encoding="utf-8")
     print(f"✅ Updated {readme_path.resolve()}")
 
+
 def main():
     schema = json.loads(Path("openapi.json").read_text(encoding="utf-8"))
     md = openapi_to_markdown(schema)
     update_readme_section(Path("README.md"), md)
+
 
 if __name__ == "__main__":
     main()
