@@ -17,7 +17,6 @@ class UnifiedChatResponse:
     usage: Optional[Dict[str, int]]  # {'prompt_tokens':..., 'completion_tokens':..., 'total_tokens':...}
     model: Optional[str]
     created: Optional[int]
-    # choices: Optional[List[UnifiedChatChoice]] = None
     stop_reason: Optional[str] = None
     raw_response: Any = None
 
