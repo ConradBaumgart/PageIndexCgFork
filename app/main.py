@@ -19,7 +19,7 @@ ORIGINAL_DOCUMENTS_FOLDER = "app/data/original_documents"
 async def lifespan(app: FastAPI):
     # Startup
     os.makedirs(GENERATED_TREES_FOLDER, exist_ok=True)
-    os.makedirs(GENERATED_TREES_FOLDER, exist_ok=True)
+    os.makedirs(ORIGINAL_DOCUMENTS_FOLDER, exist_ok=True)
     logger.info("Application starting up...")
     yield
     # Shutdown
