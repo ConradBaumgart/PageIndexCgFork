@@ -51,10 +51,10 @@ class LLMClient:
         else:
             raise ValueError(f"Unsupported provider: {self.provider}")
 
-    def generate(self, messages: List[Dict[str, str]]):
+    def generate(self, messages: List[Dict[str, str]]) -> LLMResponse:
         """
         messages: [{'role':'system'|'user'|'assistant', 'content': '...'}]
-        Returns UnifiedChatResponse with provider-agnostic fields.
+        Returns LLMResponse with provider-agnostic fields.
         """
         resp = self.client.chat.completions.create(
             model=self.model,
