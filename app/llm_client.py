@@ -10,7 +10,7 @@ PROVIDER = os.getenv("LLM_PROVIDER")  # "mistral" or "azure"
 
 
 @dataclass
-class UnifiedChatResponse:
+class LLMResponse:
     content: str
     role: Optional[str]
     finish_reason: Optional[str]
@@ -74,7 +74,7 @@ class LLMClient:
         primary = resp.choices[0]
         msg = getattr(primary, "message", None)
 
-        return UnifiedChatResponse(
+        return LLMResponse(
             content=getattr(msg, "content", None),
             role=getattr(msg, "role", None),
             finish_reason=getattr(primary, "finish_reason", None),
