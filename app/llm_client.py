@@ -61,7 +61,7 @@ class LLMClient:
         self,
         messages: List[Dict[str, str]],
         chat_history: List[Dict[str, str]] | None = None,
-        response_model: Optional[BaseModel] = None,
+        json_response: Optional[bool] = False,
     ) -> LLMResponse:
         """
         messages: [{'role':'system'|'user'|'assistant', 'content': '...'}]
@@ -71,9 +71,12 @@ class LLMClient:
 
         messages = (chat_history or []) + messages
 
-        if response_model:
-            resp = self.client.chat.completions.parse(
-                model=self.model, messages=messages, temperature=TEMPERATURE, response_format=response_model
+        if json_response:
+            resp = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=TEMPERATURE,
+                response_format={"type": "json_object"},
             )
         else:
             resp = self.client.chat.completions.create(
