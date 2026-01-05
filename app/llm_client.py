@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
 from openai import AzureOpenAI, OpenAI
+from pydantic import BaseModel
 
 from app.logging_config import get_logger
 
@@ -11,6 +12,7 @@ logger = get_logger(__name__)
 
 load_dotenv()
 PROVIDER = os.getenv("LLM_PROVIDER")  # "mistral" or "azure"
+TEMPERATURE = 0.0
 
 
 @dataclass
@@ -55,17 +57,30 @@ class LLMClient:
         else:
             raise ValueError(f"Unsupported provider: {self.provider}")
 
-    def generate(self, messages: List[Dict[str, str]]) -> LLMResponse:
+    def generate(
+        self,
+        messages: List[Dict[str, str]],
+        chat_history: List[Dict[str, str]] | None = None,
+        response_model: Optional[BaseModel] = None,
+    ) -> LLMResponse:
         """
         messages: [{'role':'system'|'user'|'assistant', 'content': '...'}]
         Returns LLMResponse with provider-agnostic fields.
         """
         logger.info("LLM will be called with %s", str(messages)[:300])
-        resp = self.client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            temperature=0.0,
-        )
+
+        messages = (chat_history or []) + messages
+
+        if response_model:
+            resp = self.client.chat.completions.parse(
+                model=self.model, messages=messages, temperature=TEMPERATURE, response_format=response_model
+            )
+        else:
+            resp = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=TEMPERATURE,
+            )
 
         # Normalize usage as different models might return different usage metrics
         usage = None
