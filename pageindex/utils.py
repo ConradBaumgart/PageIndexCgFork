@@ -8,7 +8,7 @@ from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 from types import SimpleNamespace as config
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import openai
 import pymupdf
@@ -16,6 +16,7 @@ import PyPDF2
 import tiktoken
 import yaml
 from dotenv import load_dotenv
+from pydantic import BaseModel
 from transformers import AutoTokenizer
 
 from app.llm_client import LLMClient
@@ -53,9 +54,7 @@ def count_tokens_mistral(text: str) -> int:
 
 def ChatGPT_API_with_finish_reason(
     prompt: str,
-    api_key: str = None,
-    endpoint: str = None,
-    model: str = None,
+    json_response: Optional[bool] = False,
     chat_history: List[Dict[str, str]] | None = None,
 ) -> Any:
     logging.info(f"Starting ChatGPT_API_with_finish_reason with prompt: {prompt[:200]}...")
@@ -75,7 +74,7 @@ def ChatGPT_API_with_finish_reason(
             except Exception:
                 # don't fail if your token counter is provider-specific
                 pass
-            unified = client.generate(messages)
+            unified = client.generate(messages=messages, json_response=json_response)
 
             logging.info(f"Received response with finish_reason: {unified.finish_reason}")
 
@@ -95,10 +94,8 @@ def ChatGPT_API_with_finish_reason(
 
 
 def ChatGPT_API(
-    model: str,  # kept for backward compatibility (unused by wrapper)
     prompt: str,
-    api_key: str = None,  # unused when wrapper reads env
-    endpoint: str = None,  # unused when wrapper reads env
+    json_response: Optional[bool] = False,
     chat_history: List[Dict[str, str]] | None = None,
 ) -> Any:
     """
@@ -115,7 +112,7 @@ def ChatGPT_API(
 
     for i in range(max_retries):
         try:
-            unified = llm.generate(messages)
+            unified = llm.generate(messages=messages, json_response=json_response)
             # If needed, you could also inspect: unified.finish_reason / unified.usage / unified.raw_response
             return unified.content
 
@@ -166,8 +163,9 @@ def get_json_content(response):
     return json_content
 
 
-def extract_json(content):
+def extract_json(content: str):
     try:
+        logger.info("Start extract_json function with %s", content)
         # First, try to extract JSON enclosed within ```json and ```
         start_idx = content.find("```json")
         if start_idx != -1:
@@ -183,6 +181,7 @@ def extract_json(content):
         json_content = json_content.replace("\n", " ").replace("\r", " ")  # Remove newlines
         json_content = " ".join(json_content.split())  # Normalize whitespace
 
+        logger.info("Cleaned content is %s", json_content)
         # Attempt to parse and return the JSON object
         return json.loads(json_content)
     except json.JSONDecodeError as e:

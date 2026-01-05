@@ -24,12 +24,16 @@ def main():
     print(f"Model: {response.model}")
     print(f"Usage: {response.usage}")
 
-    # Generate response with pydantic model
-    class MotivationalResponse(BaseModel):
-        reasoning: str
-        answer: str
+    ### Test with json_response
+    messages = [
+        {
+            "role": "system",
+            "content": "You are a helpful assistant. Always respond in the json format {'thinking': '...', 'answer': '...'}",
+        },
+        {"role": "user", "content": "Estimate how many cats are living in Germany!"},
+    ]
 
-    response = client.generate(messages, response_model=MotivationalResponse)
+    response = client.generate(messages, json_response=True)
 
     # Print the unified response
     print("=== LLMResponse ===")
