@@ -59,6 +59,7 @@ def ChatGPT_API_with_finish_reason(
     chat_history: List[Dict[str, str]] | None = None,
 ) -> Any:
     logging.info(f"Starting ChatGPT_API_with_finish_reason with prompt: {prompt[:200]}...")
+
     max_retries = 3
     client = LLMClient()
 
