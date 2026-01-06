@@ -475,18 +475,6 @@ def remove_structure_text(data):
     return data
 
 
-def check_token_limit(structure, limit=110000):  # TODO define limit in config
-    list = structure_to_list(structure)
-    for node in list:
-        num_tokens = count_tokens_mistral(node["text"])
-        if num_tokens > limit:
-            print(f"Node ID: {node['node_id']} has {num_tokens} tokens")
-            print("Start Index:", node["start_index"])
-            print("End Index:", node["end_index"])
-            print("Title:", node["title"])
-            print("\n")
-
-
 def convert_physical_index_to_int(data):
     if isinstance(data, list):
         for i in range(len(data)):
