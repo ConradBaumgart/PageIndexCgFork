@@ -464,13 +464,6 @@ def remove_fields(data, fields=["text"]):
     return data
 
 
-def print_toc(tree, indent=0):
-    for node in tree:
-        print("  " * indent + node["title"])
-        if node.get("nodes"):
-            print_toc(node["nodes"], indent + 1)
-
-
 def print_json(data, max_len=40, indent=2):
     def simplify_data(obj):
         if isinstance(obj, dict):
