@@ -234,19 +234,6 @@ def structure_to_list(structure):
         return nodes
 
 
-def get_text_of_pages(pdf_path, start_page, end_page, tag=True):
-    pdf_reader = PyPDF2.PdfReader(pdf_path)
-    text = ""
-    for page_num in range(start_page - 1, end_page):
-        page = pdf_reader.pages[page_num]
-        page_text = page.extract_text()
-        if tag:
-            text += f"<start_index_{page_num + 1}>\n{page_text}\n<end_index_{page_num + 1}>\n"
-        else:
-            text += page_text
-    return text
-
-
 def get_first_start_page_from_text(text):
     start_page = -1
     start_page_match = re.search(r"<start_index_(\d+)>", text)
