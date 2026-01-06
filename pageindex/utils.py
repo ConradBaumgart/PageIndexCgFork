@@ -3,6 +3,7 @@ import copy
 import json
 import logging
 import os
+import re
 import time
 from datetime import datetime
 from io import BytesIO
@@ -413,6 +414,7 @@ def list_to_tree(data):
         structure = item.get("structure")
         node = {
             "title": item.get("title"),
+            "section_number": item.get("structure"),
             "start_index": item.get("start_index"),
             "end_index": item.get("end_index"),
             "nodes": [],
@@ -491,6 +493,23 @@ def get_text_of_pdf_pages(pdf_pages, start_page, end_page):
     text = ""
     for page_num in range(start_page - 1, end_page):
         text += pdf_pages[page_num][0]
+    return text
+
+
+def get_text_of_node(
+    pdf_pages, start_page: int, end_page: int, current_node: Optional[str] = None, follwing_node: Optional[str] = None
+) -> str:
+    text = ""
+    for page_num in range(start_page - 1, end_page):
+        text += pdf_pages[page_num][0]
+    if current_node:
+        # Build a regex that finds the exact section number at a word boundary
+        pattern = rf"\b{re.escape(current_node)}\b"
+
+        m = re.search(pattern, text)
+        if m:
+            text = text[m.start() :]  # keep from the section number onwards
+
     return text
 
 
@@ -633,7 +652,7 @@ def add_node_text(node, pdf_pages):
     if isinstance(node, dict):
         start_page = node.get("start_index")
         end_page = node.get("end_index")
-        node["text"] = get_text_of_pdf_pages(pdf_pages, start_page, end_page)
+        node["text"] = get_text_of_node(pdf_pages, start_page, end_page, node["section_number"])
         if "nodes" in node:
             add_node_text(node["nodes"], pdf_pages)
     elif isinstance(node, list):
@@ -642,7 +661,7 @@ def add_node_text(node, pdf_pages):
     return
 
 
-def add_node_text_with_labels(node, pdf_pages):
+def add_node_text_with_labels(node, pdf_pages):  # seems like dead code!
     if isinstance(node, dict):
         start_page = node.get("start_index")
         end_page = node.get("end_index")
