@@ -489,20 +489,13 @@ def get_page_tokens(pdf_path, model="cl100k_base", pdf_parser="PyPDF2"):
         raise ValueError(f"Unsupported PDF parser: {pdf_parser}")
 
 
-def get_text_of_pdf_pages(pdf_pages, start_page, end_page):
-    text = ""
-    for page_num in range(start_page - 1, end_page):
-        text += pdf_pages[page_num][0]
-    return text
-
-
 def get_text_of_node(pdf_pages, start_page: int, end_page: int, current_node: Optional[str] = None) -> str:
     """
     Extract the text from a contiguous range of PDF pages and, optionally, trim it to the
     content of a specific section (node).
 
     The Section heading of the node is recognized by an exact match with current_node.
-    The heading of the following Section is recognized by the regex: 
+    The heading of the following Section is recognized by the regex:
         `(?m)^\\s*\\d+(?:\\.\\d+)*\\b\\s+[A-Za-z]`
     which matches lines starting with a section number (e.g., `1`, `1.2`, `1.2.3`) followed
     by at least one space and a letter (start of the title). This helps avoid treating a
@@ -546,19 +539,6 @@ def get_text_of_node(pdf_pages, start_page: int, end_page: int, current_node: Op
                     text = text[: following_node_match.start()]
 
     return text
-
-
-def get_text_of_pdf_pages_with_labels(pdf_pages, start_page, end_page):
-    text = ""
-    for page_num in range(start_page - 1, end_page):
-        text += f"<physical_index_{page_num + 1}>\n{pdf_pages[page_num][0]}\n<physical_index_{page_num + 1}>\n"
-    return text
-
-
-def get_number_of_pages(pdf_path):
-    pdf_reader = PyPDF2.PdfReader(pdf_path)
-    num = len(pdf_reader.pages)
-    return num
 
 
 def post_processing(structure, end_physical_index):
