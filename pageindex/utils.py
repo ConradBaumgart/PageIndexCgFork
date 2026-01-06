@@ -234,17 +234,6 @@ def structure_to_list(structure):
         return nodes
 
 
-def get_last_start_page_from_text(text):
-    start_page = -1
-    # Find all matches of start_index tags
-    start_page_matches = re.finditer(r"<start_index_(\d+)>", text)
-    # Convert iterator to list and get the last match if any exist
-    matches_list = list(start_page_matches)
-    if matches_list:
-        start_page = int(matches_list[-1].group(1))
-    return start_page
-
-
 def sanitize_filename(filename, replacement="-"):
     # In Linux, only '/' and '\0' (null) are invalid in filenames.
     # Null can't be represented in strings, so we only handle '/'.
