@@ -497,8 +497,11 @@ def get_text_of_pdf_pages(pdf_pages, start_page, end_page):
 
 
 def get_text_of_node(
-    pdf_pages, start_page: int, end_page: int, current_node: Optional[str] = None, following_node: Optional[str] = None
+    pdf_pages, start_page: int, end_page: int, current_node: Optional[str] = None
 ) -> str:
+    """
+    TODO
+    """
     text = ""
     # First, extract text of all corresponding pages
     for page_num in range(start_page - 1, end_page):
@@ -507,15 +510,19 @@ def get_text_of_node(
     # Second, remove text which comes before the current section number
     if current_node:
         # Build a regex that finds the exact section number at a word boundary
-        pattern = rf"\b{re.escape(current_node)}\b"
+        current_pattern = rf"\b{re.escape(current_node)}\b"
 
-        m = re.search(pattern, text)
-        if m:
-            text = text[m.start() :]  # keep from the section number onwards
+        current_node_match = re.search(current_pattern, text)
+        if current_node_match:
+            text = text[current_node_match.start() :]  # keep from the section number onwards
 
-    # Third, remove text which is part of the following node
-    if following_node:
-        pass
+            # Third, remove text which is part of the following node
+            any_section_pattern = r"(?m)^\s*\d+(?:\.\d+)*\b\s+[A-Za-z]" # Matches a section heading: start of line, optional spaces, section number (e.g., 1.2.3), then space and a letter
+            
+            for i, following_node_match in enumerate(re.finditer(any_section_pattern, text), start=1):
+                if i == 2:
+                    text = text[: following_node_match.start()]
+
     return text
 
 
