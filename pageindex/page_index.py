@@ -153,50 +153,6 @@ def check_if_toc_transformation_is_complete(content, toc, model=None):
     return json_content["completed"]
 
 
-def extract_toc_content(content, model=None):
-    prompt = f"""
-    Your job is to extract the full table of contents from the given text, replace ... with :
-
-    Given text: {content}
-
-    Directly return the full table of contents content. Do not output anything else."""
-
-    response, finish_reason = ChatGPT_API_with_finish_reason(prompt=prompt)
-
-    if_complete = check_if_toc_transformation_is_complete(content, response, model)
-    if if_complete == "yes" and finish_reason == "finished":
-        return response
-
-    chat_history = [
-        {"role": "user", "content": prompt},
-        {"role": "assistant", "content": response},
-    ]
-    prompt = (
-        """please continue the generation of table of contents , directly output the remaining part of the structure"""
-    )
-    new_response, finish_reason = ChatGPT_API_with_finish_reason(prompt=prompt, chat_history=chat_history)
-    response = response + new_response
-    if_complete = check_if_toc_transformation_is_complete(content, response, model)
-
-    while not (if_complete == "yes" and finish_reason == "finished"):
-        chat_history = [
-            {"role": "user", "content": prompt},
-            {"role": "assistant", "content": response},
-        ]
-        prompt = """please continue the generation of table of contents , directly output the remaining part of the structure"""
-        new_response, finish_reason = ChatGPT_API_with_finish_reason(
-            model=model, prompt=prompt, chat_history=chat_history
-        )
-        response = response + new_response
-        if_complete = check_if_toc_transformation_is_complete(content, response, model)
-
-        # Optional: Add a maximum retry limit to prevent infinite loops
-        if len(chat_history) > 5:  # Arbitrary limit of 10 attempts
-            raise Exception("Failed to complete table of contents after maximum retries")
-
-    return response
-
-
 def detect_page_index(toc_content, model=None):
     print("start detect_page_index")
     prompt = f"""
