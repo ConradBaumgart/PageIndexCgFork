@@ -522,19 +522,6 @@ def add_node_text(node, pdf_pages):
     return
 
 
-def add_node_text_with_labels(node, pdf_pages):  # seems like dead code!
-    if isinstance(node, dict):
-        start_page = node.get("start_index")
-        end_page = node.get("end_index")
-        node["text"] = get_text_of_pdf_pages_with_labels(pdf_pages, start_page, end_page)
-        if "nodes" in node:
-            add_node_text_with_labels(node["nodes"], pdf_pages)
-    elif isinstance(node, list):
-        for index in range(len(node)):
-            add_node_text_with_labels(node[index], pdf_pages)
-    return
-
-
 async def generate_node_summary(node, model=None):
     prompt = f"""You are given a part of a document, your task is to generate a description of the partial document about what are main points covered in the partial document.
 
