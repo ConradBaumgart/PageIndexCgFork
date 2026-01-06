@@ -442,19 +442,6 @@ def add_page_number_to_toc(part, structure, model=None):
     return json_result
 
 
-def remove_first_physical_index_section(text):
-    """
-    Removes the first section between <physical_index_X> and <physical_index_X> tags,
-    and returns the remaining text.
-    """
-    pattern = r"<physical_index_\d+>.*?<physical_index_\d+>"
-    match = re.search(pattern, text, re.DOTALL)
-    if match:
-        # Remove the first matched section
-        return text.replace(match.group(0), "", 1)
-    return text
-
-
 ### add verify completeness
 def generate_toc_continue(toc_content, part, model=MISTRAL_MODEL):
     print("start generate_toc_continue")
