@@ -578,12 +578,6 @@ def generate_doc_description(structure, model=None):
     return response
 
 
-def reorder_dict(data, key_order):
-    if not key_order:
-        return data
-    return {key: data[key] for key in key_order if key in data}
-
-
 class ConfigLoader:
     def __init__(self, default_path: str = None):
         if default_path is None:
