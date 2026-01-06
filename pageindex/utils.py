@@ -30,14 +30,6 @@ MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 MISTRAL_MODEL = os.getenv("MISTRAL_MODEL")
 
 
-def count_tokens(text, model="cl100k_base"):
-    if not text:
-        return 0
-    enc = tiktoken.get_encoding("cl100k_base")
-    tokens = enc.encode(text)
-    return len(tokens)
-
-
 def count_tokens_mistral(text: str) -> int:
     """
     Count tokens for a given text using Mistral's tokenizer.
