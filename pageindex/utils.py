@@ -456,19 +456,6 @@ def post_processing(structure, end_physical_index):
         return structure
 
 
-def clean_structure_post(data):
-    if isinstance(data, dict):
-        data.pop("page_number", None)
-        data.pop("start_index", None)
-        data.pop("end_index", None)
-        if "nodes" in data:
-            clean_structure_post(data["nodes"])
-    elif isinstance(data, list):
-        for section in data:
-            clean_structure_post(section)
-    return data
-
-
 def remove_fields(data, fields=["text"]):
     if isinstance(data, dict):
         return {k: remove_fields(v, fields) for k, v in data.items() if k not in fields}
