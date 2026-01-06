@@ -135,24 +135,6 @@ def toc_detector_single_page(content, model=None):
     return json_content["toc_detected"]
 
 
-def check_if_toc_extraction_is_complete(content, toc, model=None):
-    prompt = """
-    You are given a partial document  and a  table of contents.
-    Your job is to check if the  table of contents is complete, which it contains all the main sections in the partial document.
-
-    Reply format:
-    {
-        "thinking": <why do you think the table of contents is complete or not>
-        "completed": "yes" or "no"
-    }
-    Directly return the final JSON structure. Do not output anything else."""
-
-    prompt = prompt + "\n Document:\n" + content + "\n Table of contents:\n" + toc
-    response = ChatGPT_API(prompt=prompt, json_response=True)
-    json_content = extract_json(response)
-    return json_content["completed"]
-
-
 def check_if_toc_transformation_is_complete(content, toc, model=None):
     prompt = """
     You are given a raw table of contents and a  table of contents.
@@ -169,50 +151,6 @@ def check_if_toc_transformation_is_complete(content, toc, model=None):
     response = ChatGPT_API(prompt=prompt, json_response=True)
     json_content = extract_json(response)
     return json_content["completed"]
-
-
-def extract_toc_content(content, model=None):
-    prompt = f"""
-    Your job is to extract the full table of contents from the given text, replace ... with :
-
-    Given text: {content}
-
-    Directly return the full table of contents content. Do not output anything else."""
-
-    response, finish_reason = ChatGPT_API_with_finish_reason(prompt=prompt)
-
-    if_complete = check_if_toc_transformation_is_complete(content, response, model)
-    if if_complete == "yes" and finish_reason == "finished":
-        return response
-
-    chat_history = [
-        {"role": "user", "content": prompt},
-        {"role": "assistant", "content": response},
-    ]
-    prompt = (
-        """please continue the generation of table of contents , directly output the remaining part of the structure"""
-    )
-    new_response, finish_reason = ChatGPT_API_with_finish_reason(prompt=prompt, chat_history=chat_history)
-    response = response + new_response
-    if_complete = check_if_toc_transformation_is_complete(content, response, model)
-
-    while not (if_complete == "yes" and finish_reason == "finished"):
-        chat_history = [
-            {"role": "user", "content": prompt},
-            {"role": "assistant", "content": response},
-        ]
-        prompt = """please continue the generation of table of contents , directly output the remaining part of the structure"""
-        new_response, finish_reason = ChatGPT_API_with_finish_reason(
-            model=model, prompt=prompt, chat_history=chat_history
-        )
-        response = response + new_response
-        if_complete = check_if_toc_transformation_is_complete(content, response, model)
-
-        # Optional: Add a maximum retry limit to prevent infinite loops
-        if len(chat_history) > 5:  # Arbitrary limit of 10 attempts
-            raise Exception("Failed to complete table of contents after maximum retries")
-
-    return response
 
 
 def detect_page_index(toc_content, model=None):
@@ -502,19 +440,6 @@ def add_page_number_to_toc(part, structure, model=None):
         if "start" in item:
             del item["start"]
     return json_result
-
-
-def remove_first_physical_index_section(text):
-    """
-    Removes the first section between <physical_index_X> and <physical_index_X> tags,
-    and returns the remaining text.
-    """
-    pattern = r"<physical_index_\d+>.*?<physical_index_\d+>"
-    match = re.search(pattern, text, re.DOTALL)
-    if match:
-        # Remove the first matched section
-        return text.replace(match.group(0), "", 1)
-    return text
 
 
 ### add verify completeness

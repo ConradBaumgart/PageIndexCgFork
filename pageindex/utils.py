@@ -30,14 +30,6 @@ MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 MISTRAL_MODEL = os.getenv("MISTRAL_MODEL")
 
 
-def count_tokens(text, model="cl100k_base"):
-    if not text:
-        return 0
-    enc = tiktoken.get_encoding("cl100k_base")
-    tokens = enc.encode(text)
-    return len(tokens)
-
-
 def count_tokens_mistral(text: str) -> int:
     """
     Count tokens for a given text using Mistral's tokenizer.
@@ -240,105 +232,6 @@ def structure_to_list(structure):
         for item in structure:
             nodes.extend(structure_to_list(item))
         return nodes
-
-
-def get_leaf_nodes(structure):
-    if isinstance(structure, dict):
-        if not structure["nodes"]:
-            structure_node = copy.deepcopy(structure)
-            structure_node.pop("nodes", None)
-            return [structure_node]
-        else:
-            leaf_nodes = []
-            for key in list(structure.keys()):
-                if "nodes" in key:
-                    leaf_nodes.extend(get_leaf_nodes(structure[key]))
-            return leaf_nodes
-    elif isinstance(structure, list):
-        leaf_nodes = []
-        for item in structure:
-            leaf_nodes.extend(get_leaf_nodes(item))
-        return leaf_nodes
-
-
-def is_leaf_node(data, node_id):
-    # Helper function to find the node by its node_id
-    def find_node(data, node_id):
-        if isinstance(data, dict):
-            if data.get("node_id") == node_id:
-                return data
-            for key in data.keys():
-                if "nodes" in key:
-                    result = find_node(data[key], node_id)
-                    if result:
-                        return result
-        elif isinstance(data, list):
-            for item in data:
-                result = find_node(item, node_id)
-                if result:
-                    return result
-        return None
-
-    # Find the node with the given node_id
-    node = find_node(data, node_id)
-
-    # Check if the node is a leaf node
-    if node and not node.get("nodes"):
-        return True
-    return False
-
-
-def get_last_node(structure):
-    return structure[-1]
-
-
-def extract_text_from_pdf(pdf_path):
-    pdf_reader = PyPDF2.PdfReader(pdf_path)
-    ###return text not list
-    text = ""
-    for page_num in range(len(pdf_reader.pages)):
-        page = pdf_reader.pages[page_num]
-        text += page.extract_text()
-    return text
-
-
-def get_pdf_title(pdf_path):
-    pdf_reader = PyPDF2.PdfReader(pdf_path)
-    meta = pdf_reader.metadata
-    title = meta.title if meta and meta.title else "Untitled"
-    return title
-
-
-def get_text_of_pages(pdf_path, start_page, end_page, tag=True):
-    pdf_reader = PyPDF2.PdfReader(pdf_path)
-    text = ""
-    for page_num in range(start_page - 1, end_page):
-        page = pdf_reader.pages[page_num]
-        page_text = page.extract_text()
-        if tag:
-            text += f"<start_index_{page_num + 1}>\n{page_text}\n<end_index_{page_num + 1}>\n"
-        else:
-            text += page_text
-    return text
-
-
-def get_first_start_page_from_text(text):
-    start_page = -1
-    start_page_match = re.search(r"<start_index_(\d+)>", text)
-    if start_page_match:
-        start_page = int(start_page_match.group(1))
-    return start_page
-
-
-def get_last_start_page_from_text(text):
-    start_page = -1
-    # Find all matches of start_index tags
-    start_page_matches = re.finditer(r"<start_index_(\d+)>", text)
-    # Convert iterator to list and get the last match if any exist
-    matches_list = list(start_page_matches)
-    if matches_list:
-        start_page = int(matches_list[-1].group(1))
-    return start_page
 
 
 def sanitize_filename(filename, replacement="-"):
@@ -563,47 +456,12 @@ def post_processing(structure, end_physical_index):
         return structure
 
 
-def clean_structure_post(data):
-    if isinstance(data, dict):
-        data.pop("page_number", None)
-        data.pop("start_index", None)
-        data.pop("end_index", None)
-        if "nodes" in data:
-            clean_structure_post(data["nodes"])
-    elif isinstance(data, list):
-        for section in data:
-            clean_structure_post(section)
-    return data
-
-
 def remove_fields(data, fields=["text"]):
     if isinstance(data, dict):
         return {k: remove_fields(v, fields) for k, v in data.items() if k not in fields}
     elif isinstance(data, list):
         return [remove_fields(item, fields) for item in data]
     return data
-
-
-def print_toc(tree, indent=0):
-    for node in tree:
-        print("  " * indent + node["title"])
-        if node.get("nodes"):
-            print_toc(node["nodes"], indent + 1)
-
-
-def print_json(data, max_len=40, indent=2):
-    def simplify_data(obj):
-        if isinstance(obj, dict):
-            return {k: simplify_data(v) for k, v in obj.items()}
-        elif isinstance(obj, list):
-            return [simplify_data(item) for item in obj]
-        elif isinstance(obj, str) and len(obj) > max_len:
-            return obj[:max_len] + "..."
-        else:
-            return obj
-
-    simplified = simplify_data(data)
-    print(json.dumps(simplified, indent=indent, ensure_ascii=False))
 
 
 def remove_structure_text(data):
@@ -615,18 +473,6 @@ def remove_structure_text(data):
         for item in data:
             remove_structure_text(item)
     return data
-
-
-def check_token_limit(structure, limit=110000):  # TODO define limit in config
-    list = structure_to_list(structure)
-    for node in list:
-        num_tokens = count_tokens_mistral(node["text"])
-        if num_tokens > limit:
-            print(f"Node ID: {node['node_id']} has {num_tokens} tokens")
-            print("Start Index:", node["start_index"])
-            print("End Index:", node["end_index"])
-            print("Title:", node["title"])
-            print("\n")
 
 
 def convert_physical_index_to_int(data):
@@ -673,19 +519,6 @@ def add_node_text(node, pdf_pages):
     elif isinstance(node, list):
         for index in range(len(node)):
             add_node_text(node[index], pdf_pages)
-    return
-
-
-def add_node_text_with_labels(node, pdf_pages):  # seems like dead code!
-    if isinstance(node, dict):
-        start_page = node.get("start_index")
-        end_page = node.get("end_index")
-        node["text"] = get_text_of_pdf_pages_with_labels(pdf_pages, start_page, end_page)
-        if "nodes" in node:
-            add_node_text_with_labels(node["nodes"], pdf_pages)
-    elif isinstance(node, list):
-        for index in range(len(node)):
-            add_node_text_with_labels(node[index], pdf_pages)
     return
 
 
@@ -743,26 +576,6 @@ def generate_doc_description(structure, model=None):
     """
     response = ChatGPT_API(model, prompt)
     return response
-
-
-def reorder_dict(data, key_order):
-    if not key_order:
-        return data
-    return {key: data[key] for key in key_order if key in data}
-
-
-def format_structure(structure, order=None):
-    if not order:
-        return structure
-    if isinstance(structure, dict):
-        if "nodes" in structure:
-            structure["nodes"] = format_structure(structure["nodes"], order)
-        if not structure.get("nodes"):
-            structure.pop("nodes", None)
-        structure = reorder_dict(structure, order)
-    elif isinstance(structure, list):
-        structure = [format_structure(item, order) for item in structure]
-    return structure
 
 
 class ConfigLoader:
