@@ -234,33 +234,6 @@ def structure_to_list(structure):
         return nodes
 
 
-def is_leaf_node(data, node_id):
-    # Helper function to find the node by its node_id
-    def find_node(data, node_id):
-        if isinstance(data, dict):
-            if data.get("node_id") == node_id:
-                return data
-            for key in data.keys():
-                if "nodes" in key:
-                    result = find_node(data[key], node_id)
-                    if result:
-                        return result
-        elif isinstance(data, list):
-            for item in data:
-                result = find_node(item, node_id)
-                if result:
-                    return result
-        return None
-
-    # Find the node with the given node_id
-    node = find_node(data, node_id)
-
-    # Check if the node is a leaf node
-    if node and not node.get("nodes"):
-        return True
-    return False
-
-
 def get_last_node(structure):
     return structure[-1]
 
