@@ -234,14 +234,6 @@ def structure_to_list(structure):
         return nodes
 
 
-def get_first_start_page_from_text(text):
-    start_page = -1
-    start_page_match = re.search(r"<start_index_(\d+)>", text)
-    if start_page_match:
-        start_page = int(start_page_match.group(1))
-    return start_page
-
-
 def get_last_start_page_from_text(text):
     start_page = -1
     # Find all matches of start_index tags
