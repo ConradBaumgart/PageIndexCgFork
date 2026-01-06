@@ -234,10 +234,6 @@ def structure_to_list(structure):
         return nodes
 
 
-def get_last_node(structure):
-    return structure[-1]
-
-
 def extract_text_from_pdf(pdf_path):
     pdf_reader = PyPDF2.PdfReader(pdf_path)
     ###return text not list
