@@ -234,16 +234,6 @@ def structure_to_list(structure):
         return nodes
 
 
-def extract_text_from_pdf(pdf_path):
-    pdf_reader = PyPDF2.PdfReader(pdf_path)
-    ###return text not list
-    text = ""
-    for page_num in range(len(pdf_reader.pages)):
-        page = pdf_reader.pages[page_num]
-        text += page.extract_text()
-    return text
-
-
 def get_pdf_title(pdf_path):
     pdf_reader = PyPDF2.PdfReader(pdf_path)
     meta = pdf_reader.metadata
