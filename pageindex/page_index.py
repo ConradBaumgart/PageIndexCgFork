@@ -135,24 +135,6 @@ def toc_detector_single_page(content, model=None):
     return json_content["toc_detected"]
 
 
-def check_if_toc_extraction_is_complete(content, toc, model=None):
-    prompt = """
-    You are given a partial document  and a  table of contents.
-    Your job is to check if the  table of contents is complete, which it contains all the main sections in the partial document.
-
-    Reply format:
-    {
-        "thinking": <why do you think the table of contents is complete or not>
-        "completed": "yes" or "no"
-    }
-    Directly return the final JSON structure. Do not output anything else."""
-
-    prompt = prompt + "\n Document:\n" + content + "\n Table of contents:\n" + toc
-    response = ChatGPT_API(prompt=prompt, json_response=True)
-    json_content = extract_json(response)
-    return json_content["completed"]
-
-
 def check_if_toc_transformation_is_complete(content, toc, model=None):
     prompt = """
     You are given a raw table of contents and a  table of contents.
