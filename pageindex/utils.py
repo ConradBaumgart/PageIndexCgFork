@@ -3,6 +3,7 @@ import copy
 import json
 import logging
 import os
+import re
 import time
 from datetime import datetime
 from io import BytesIO
@@ -413,6 +414,7 @@ def list_to_tree(data):
         structure = item.get("structure")
         node = {
             "title": item.get("title"),
+            "section_number": item.get("structure"),
             "start_index": item.get("start_index"),
             "end_index": item.get("end_index"),
             "nodes": [],
@@ -487,24 +489,56 @@ def get_page_tokens(pdf_path, model="cl100k_base", pdf_parser="PyPDF2"):
         raise ValueError(f"Unsupported PDF parser: {pdf_parser}")
 
 
-def get_text_of_pdf_pages(pdf_pages, start_page, end_page):
+def get_text_of_node(pdf_pages, start_page: int, end_page: int, current_node: Optional[str] = None) -> str:
+    """
+    Extract the text from a contiguous range of PDF pages and, optionally, trim it to the
+    content of a specific section (node).
+
+    The Section heading of the node is recognized by an exact match with current_node.
+    The heading of the following Section is recognized by the regex:
+        `(?m)^\\s*\\d+(?:\\.\\d+)*\\b\\s+[A-Za-z]`
+    which matches lines starting with a section number (e.g., `1`, `1.2`, `1.2.3`) followed
+    by at least one space and a letter (start of the title). This helps avoid treating a
+    bare page number like `2` on its own line as a heading.
+
+    Args:
+        pdf_pages: A sequence of page contents.
+        start_page (int): 1-based index of the first page to include (inclusive).
+        end_page (int): 1-based index of the last page to include (inclusive).
+        current_node (Optional[str]): Section number to anchor on (e.g., "1.2", "2", "3.4.5").
+                                      If omitted or not found in the text, the concatenated
+                                      text of the page range is returned unchanged.
+
+    Returns:
+        str: The concatenated page text, optionally trimmed to the current node’s content.
+
+    Edge Cases:
+        - If `current_node` is not found, the full concatenated text is returned.
+        - Lines that are only digits (e.g., a page number "2") are **not** considered
+          headings by the default next-section pattern, helping avoid accidental cuts.
+    """
     text = ""
+    # First, extract text of all corresponding pages
     for page_num in range(start_page - 1, end_page):
         text += pdf_pages[page_num][0]
+
+    # Second, remove text which comes before the current section number
+    if current_node:
+        # Build a regex that finds the exact section number at a word boundary
+        current_pattern = rf"\b{re.escape(current_node)}\b"
+
+        current_node_match = re.search(current_pattern, text)
+        if current_node_match:
+            text = text[current_node_match.start() :]  # keep from the section number onwards
+
+            # Third, remove text which is part of the following node
+            any_section_pattern = r"(?m)^\s*\d+(?:\.\d+)*\b\s+[A-Za-z]"  # Matches a section heading: start of line, optional spaces, section number (e.g., 1.2.3), then space and a letter
+
+            for i, following_node_match in enumerate(re.finditer(any_section_pattern, text), start=1):
+                if i == 2:
+                    text = text[: following_node_match.start()]
+
     return text
-
-
-def get_text_of_pdf_pages_with_labels(pdf_pages, start_page, end_page):
-    text = ""
-    for page_num in range(start_page - 1, end_page):
-        text += f"<physical_index_{page_num + 1}>\n{pdf_pages[page_num][0]}\n<physical_index_{page_num + 1}>\n"
-    return text
-
-
-def get_number_of_pages(pdf_path):
-    pdf_reader = PyPDF2.PdfReader(pdf_path)
-    num = len(pdf_reader.pages)
-    return num
 
 
 def post_processing(structure, end_physical_index):
@@ -633,7 +667,7 @@ def add_node_text(node, pdf_pages):
     if isinstance(node, dict):
         start_page = node.get("start_index")
         end_page = node.get("end_index")
-        node["text"] = get_text_of_pdf_pages(pdf_pages, start_page, end_page)
+        node["text"] = get_text_of_node(pdf_pages, start_page, end_page, node["section_number"])
         if "nodes" in node:
             add_node_text(node["nodes"], pdf_pages)
     elif isinstance(node, list):
@@ -642,7 +676,7 @@ def add_node_text(node, pdf_pages):
     return
 
 
-def add_node_text_with_labels(node, pdf_pages):
+def add_node_text_with_labels(node, pdf_pages):  # seems like dead code!
     if isinstance(node, dict):
         start_page = node.get("start_index")
         end_page = node.get("end_index")
