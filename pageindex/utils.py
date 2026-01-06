@@ -464,21 +464,6 @@ def remove_fields(data, fields=["text"]):
     return data
 
 
-def print_json(data, max_len=40, indent=2):
-    def simplify_data(obj):
-        if isinstance(obj, dict):
-            return {k: simplify_data(v) for k, v in obj.items()}
-        elif isinstance(obj, list):
-            return [simplify_data(item) for item in obj]
-        elif isinstance(obj, str) and len(obj) > max_len:
-            return obj[:max_len] + "..."
-        else:
-            return obj
-
-    simplified = simplify_data(data)
-    print(json.dumps(simplified, indent=indent, ensure_ascii=False))
-
-
 def remove_structure_text(data):
     if isinstance(data, dict):
         data.pop("text", None)
