@@ -234,13 +234,6 @@ def structure_to_list(structure):
         return nodes
 
 
-def get_pdf_title(pdf_path):
-    pdf_reader = PyPDF2.PdfReader(pdf_path)
-    meta = pdf_reader.metadata
-    title = meta.title if meta and meta.title else "Untitled"
-    return title
-
-
 def get_text_of_pages(pdf_path, start_page, end_page, tag=True):
     pdf_reader = PyPDF2.PdfReader(pdf_path)
     text = ""
