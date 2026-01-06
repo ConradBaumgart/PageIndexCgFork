@@ -16,7 +16,6 @@ import PyPDF2
 import tiktoken
 import yaml
 from dotenv import load_dotenv
-from pydantic import BaseModel
 from transformers import AutoTokenizer
 
 from app.llm_client import LLMClient

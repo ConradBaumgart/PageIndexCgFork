@@ -384,10 +384,7 @@ def remove_page_number(data):
 def extract_matching_page_pairs(toc_page, toc_physical_index, start_page_index) -> List[Dict]:
     # note: toc_page is created by toc_transformer which uses LLM calls
     pairs = []
-    print(toc_physical_index)
     for phy_item in toc_physical_index:
-        print("++++++++++++++++++")
-        print(phy_item)
         for page_item in toc_page:
             if phy_item.get("title") == page_item.get("title"):
                 physical_index = phy_item.get("physical_index")
@@ -1016,8 +1013,6 @@ async def meta_processor(
     else:
         toc_with_page_number = process_no_toc(page_list, start_index=start_index, model=opt.model, logger=logger)
 
-    print("++++++++++++++++")
-    print(toc_with_page_number)
     toc_with_page_number = [item for item in toc_with_page_number if item.get("physical_index") is not None]
 
     toc_with_page_number = validate_and_truncate_physical_indices(
