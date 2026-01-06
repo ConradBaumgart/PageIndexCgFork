@@ -234,25 +234,6 @@ def structure_to_list(structure):
         return nodes
 
 
-def get_leaf_nodes(structure):
-    if isinstance(structure, dict):
-        if not structure["nodes"]:
-            structure_node = copy.deepcopy(structure)
-            structure_node.pop("nodes", None)
-            return [structure_node]
-        else:
-            leaf_nodes = []
-            for key in list(structure.keys()):
-                if "nodes" in key:
-                    leaf_nodes.extend(get_leaf_nodes(structure[key]))
-            return leaf_nodes
-    elif isinstance(structure, list):
-        leaf_nodes = []
-        for item in structure:
-            leaf_nodes.extend(get_leaf_nodes(item))
-        return leaf_nodes
-
-
 def is_leaf_node(data, node_id):
     # Helper function to find the node by its node_id
     def find_node(data, node_id):
