@@ -1106,7 +1106,7 @@ async def page_index_main(doc, opt=None):
             if opt.if_add_doc_description == "yes":
                 # Create a clean structure without unnecessary fields for description generation
                 clean_structure = create_clean_structure_for_description(structure)
-                doc_description = generate_doc_description(clean_structure, model=opt.model)
+                doc_description = generate_doc_description(clean_structure)
                 return {
                     "doc_name": get_pdf_name(doc),
                     "doc_description": doc_description,
