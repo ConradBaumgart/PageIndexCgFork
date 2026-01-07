@@ -97,7 +97,7 @@ class LLMClient:
         primary = resp.choices[0]
         msg = getattr(primary, "message", None)
 
-        logger.info("LLM returned %s", msg.content[:100])
+        logger.info("LLM returned %s", msg.content)
         logger.debug("Full response of LLM is %r", resp)
 
         return LLMResponse(
