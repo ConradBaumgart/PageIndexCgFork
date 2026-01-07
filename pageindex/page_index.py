@@ -928,7 +928,7 @@ async def meta_processor(
             page_list,
             toc_check_page_num=opt.toc_check_page_num,
             model=opt.model,
-            logger=logger
+            logger=logger,
         )
     elif mode == "process_toc_no_page_numbers":
         toc_with_page_number = process_toc_no_page_numbers(
