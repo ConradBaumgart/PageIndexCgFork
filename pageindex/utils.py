@@ -141,7 +141,16 @@ async def ChatGPT_API_async(model, prompt, api_key=MISTRAL_API_KEY, endpoint=MIS
                 return "Error"
 
 
-def get_json_content(response):
+def get_json_content(response: str) -> str:
+    """
+    Cleans a JSON string by removing trailing or leading characters like '```'.
+
+    Args:
+        response (str): The raw string containing JSON data.
+
+    Return:
+        str: cleaned string containing JSON data.
+    """
     start_idx = response.find("```json")
     if start_idx != -1:
         start_idx += 7
@@ -155,7 +164,19 @@ def get_json_content(response):
     return json_content
 
 
-def extract_json(content: str):
+def extract_json(content: str) -> Any:
+    """
+    Extracts and parses JSON from a given string, typically the output of an LLM.
+    Cleans preceding or trailing characters such as '```json' and normalizes the content
+    before converting it into a Python object.
+
+    Args:
+        content (str): The raw string containing JSON data.
+
+    Returns:
+        Any: A Python object (e.g., dict, list, int, str) parsed from the JSON content.
+
+    """
     try:
         logger.info("Start extract_json function with %s", content)
         # First, try to extract JSON enclosed within ```json and ```
