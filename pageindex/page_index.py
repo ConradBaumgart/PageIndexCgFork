@@ -5,11 +5,7 @@ import os
 import random
 import re
 
-from app.logging_config import get_logger
-
 from .utils import *
-
-logger = get_logger(__name__)
 
 MISTRAL_MODEL = os.getenv("MISTRAL_MODEL")
 
@@ -564,7 +560,9 @@ def process_toc_no_page_numbers(toc_content, toc_page_list, page_list, start_ind
     return toc_with_page_number
 
 
-def process_toc_with_page_numbers(toc_content, toc_page_list, page_list, toc_check_page_num=None, model=None):
+def process_toc_with_page_numbers(
+    toc_content, toc_page_list, page_list, toc_check_page_num=None, model=None, logger=None
+):
     toc_with_page_number = toc_transformer(toc_content, model)
     logger.info(f"toc_with_page_number: {toc_with_page_number}")
 
@@ -641,7 +639,7 @@ def process_none_page_numbers(toc_items, page_list, start_index=1, model=None):
     return toc_items
 
 
-def check_toc(page_list, opt=None):
+def check_toc(page_list, opt=None, logger=None):
     toc_page_list = find_toc_pages(start_page_index=0, page_list=page_list, opt=opt)
     if len(toc_page_list) == 0:
         logger.info("No TOC found")
@@ -930,6 +928,7 @@ async def meta_processor(
             page_list,
             toc_check_page_num=opt.toc_check_page_num,
             model=opt.model,
+            logger=logger
         )
     elif mode == "process_toc_no_page_numbers":
         toc_with_page_number = process_toc_no_page_numbers(
@@ -1039,7 +1038,7 @@ async def process_large_node_recursively(node, page_list, opt=None, logger=None)
 
 
 async def tree_parser(page_list, opt, doc=None, logger=None):
-    check_toc_result = check_toc(page_list, opt)
+    check_toc_result = check_toc(page_list, opt, logger=logger)
     logger.info(check_toc_result)
 
     if (
