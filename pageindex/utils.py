@@ -1,7 +1,6 @@
 import asyncio
 import copy
 import json
-import logging
 import os
 import re
 import time
@@ -49,7 +48,7 @@ def ChatGPT_API_with_finish_reason(
     json_response: Optional[bool] = False,
     chat_history: List[Dict[str, str]] | None = None,
 ) -> Any:
-    logging.info(f"Starting ChatGPT_API_with_finish_reason with prompt: {prompt[:200]}...")
+    logger.info(f"Starting ChatGPT_API_with_finish_reason with prompt: {prompt[:200]}...")
 
     max_retries = 3
     client = LLMClient()
@@ -62,13 +61,13 @@ def ChatGPT_API_with_finish_reason(
             # Optional: token counting (depends on your implementation)
             messages_as_strings = "\n".join(f"{msg['role']}: {msg['content']}" for msg in messages if "content" in msg)
             try:
-                logging.debug(f"Attempt {i + 1}/{max_retries} - tokens {count_tokens_mistral(messages_as_strings)}")
+                logger.debug(f"Attempt {i + 1}/{max_retries} - tokens {count_tokens_mistral(messages_as_strings)}")
             except Exception:
                 # don't fail if your token counter is provider-specific
                 pass
             unified = client.generate(messages=messages, json_response=json_response)
 
-            logging.info(f"Received response with finish_reason: {unified.finish_reason}")
+            logger.info(f"Received response with finish_reason: {unified.finish_reason}")
 
             if unified.finish_reason == "length":
                 return unified.content, "max_output_reached"
@@ -77,11 +76,11 @@ def ChatGPT_API_with_finish_reason(
 
         except Exception as e:
             print("************* Retrying *************")
-            logging.warning(f"Retrying after error on attempt {i + 1}: {e}")
+            logger.warning(f"Retrying after error on attempt {i + 1}: {e}")
             if i < max_retries - 1:
                 time.sleep(1)
             else:
-                logging.error(f"Max retries reached for prompt: {prompt[:200]}... Last error: {e}")
+                logger.error(f"Max retries reached for prompt: {prompt[:200]}... Last error: {e}")
                 return "Error"
 
 
@@ -95,7 +94,7 @@ def ChatGPT_API(
     Preserves retries and the original return contract (str or "Error").
     """
     max_retries = 3
-    logging.info(f"Starting ChatGPT_API with prompt: {prompt[:200]}...")
+    logger.info(f"Starting ChatGPT_API with prompt: {prompt[:200]}...")
     llm = LLMClient()  # provider is selected via env: LLM_PROVIDER
 
     # Build OpenAI-style messages
@@ -110,17 +109,17 @@ def ChatGPT_API(
 
         except Exception as e:
             print("************* Retrying *************")
-            logging.error(f"Error on attempt {i + 1}/{max_retries}: {e}")
+            logger.error(f"Error on attempt {i + 1}/{max_retries}: {e}")
             if i < max_retries - 1:
                 time.sleep(1)
             else:
-                logging.error("Max retries reached for prompt: " + prompt)
+                logger.error("Max retries reached for prompt: " + prompt)
                 return "Error"
 
 
 async def ChatGPT_API_async(model, prompt, api_key=MISTRAL_API_KEY, endpoint=MISTRAL_ENDPOINT):
     max_retries = 3
-    logging.info(f"Starting ChatGPT_API_async with prompt: {prompt[:200]}...")
+    logger.info(f"Starting ChatGPT_API_async with prompt: {prompt[:200]}...")
     messages = [{"role": "user", "content": prompt}]
     for i in range(max_retries):
         try:
@@ -133,11 +132,11 @@ async def ChatGPT_API_async(model, prompt, api_key=MISTRAL_API_KEY, endpoint=MIS
                 return response.choices[0].message.content
         except Exception as e:
             print("************* Retrying *************")
-            logging.error(f"Error: {e}")
+            logger.error(f"Error: {e}")
             if i < max_retries - 1:
                 await asyncio.sleep(1)  # Wait for 1s before retrying
             else:
-                logging.error("Max retries reached for prompt: " + prompt)
+                logger.error("Max retries reached for prompt: " + prompt)
                 return "Error"
 
 
@@ -198,17 +197,17 @@ def extract_json(content: str) -> Any:
         # Attempt to parse and return the JSON object
         return json.loads(json_content)
     except json.JSONDecodeError as e:
-        logging.error(f"Failed to extract JSON: {e}")
+        logger.error(f"Failed to extract JSON: {e}")
         # Try to clean up the content further if initial parsing fails
         try:
             # Remove any trailing commas before closing brackets/braces
             json_content = json_content.replace(",]", "]").replace(",}", "}")
             return json.loads(json_content)
         except:
-            logging.error("Failed to parse JSON even after cleanup")
+            logger.error("Failed to parse JSON even after cleanup")
             return {}
     except Exception as e:
-        logging.error(f"Unexpected error while extracting JSON: {e}")
+        logger.error(f"Unexpected error while extracting JSON: {e}")
         return {}
 
 
