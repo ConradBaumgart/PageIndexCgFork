@@ -144,10 +144,10 @@ async def ChatGPT_API_async(model, prompt, api_key=MISTRAL_API_KEY, endpoint=MIS
 def get_json_content(response: str) -> str:
     """
     Cleans a JSON string by removing trailing or leading characters like '```'.
-    
+
     Args:
         response (str): The raw string containing JSON data.
-    
+
     Return:
         str: cleaned string containing JSON data.
     """
