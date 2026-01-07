@@ -7,7 +7,7 @@ from fastapi import HTTPException
 
 from app.llm_client import LLMClient
 from app.logging_config import get_logger
-from pageindex.utils import get_nodes, remove_fields
+from pageindex.utils import get_json_content, get_nodes, remove_fields
 
 logger = get_logger(__name__)
 
@@ -96,13 +96,10 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
         messages = []  #
         messages.append({"role": "user", "content": doc_search_prompt})
 
-        doc_search_result = llm.generate(messages)
+        doc_search_result = llm.generate(messages, json_response=True)
 
         # Answer from LLM contains backticks to indicate a JSON file
-        llm_answer = doc_search_result.content
-        if llm_answer.startswith("```"):  # will be replaced by structured output
-            llm_answer = re.sub(r"^```(?:json)?\s*", "", llm_answer, flags=re.IGNORECASE).strip()
-            llm_answer = re.sub(r"```$", "", llm_answer).strip()
+        llm_answer = get_json_content(doc_search_result.content)
 
         doc_search_result_json = json.loads(llm_answer)
         selected_document = doc_search_result_json["answer"]
@@ -156,7 +153,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     messages = []
     messages.append({"role": "user", "content": tree_search_prompt})
 
-    tree_search_result = llm.generate(messages)
+    tree_search_result = llm.generate(messages, json_response=True)
 
     # query LLM
     flattened_nodes = get_nodes(tree["structure"])
@@ -179,10 +176,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     relevant_nodes = []
 
     # Answer from LLM contains backticks to indicate a JSON file
-    llm_answer = tree_search_result.content
-    if llm_answer.startswith("```"):  # will be replaced by structured output
-        llm_answer = re.sub(r"^```(?:json)?\s*", "", llm_answer, flags=re.IGNORECASE).strip()
-        llm_answer = re.sub(r"```$", "", llm_answer).strip()
+    llm_answer = get_json_content(tree_search_result.content)
 
     tree_search_result_json = json.loads(llm_answer)
     for node_id in tree_search_result_json["node_list"]:
