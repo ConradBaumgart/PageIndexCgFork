@@ -34,7 +34,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
 
     logger.info("Call to handle_query_documents with arguments query=%s and documents=%s", query, documents)
 
-    # 1. Step: get trees according to documents and query TODO into seperate function?
+    # 1. Step: get tree according to documents and query
     available_trees = list_available_trees(RESULTS_DIR)
 
     requested_trees = [
@@ -84,8 +84,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
 
     llm = LLMClient()
 
-    messages = []
-    messages.append({"role": "user", "content": tree_search_prompt})
+    messages = [{"role": "user", "content": tree_search_prompt}]
 
     tree_search_result = llm.generate(messages, json_response=True)
 
@@ -94,7 +93,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
 
     logger.debug("flattend nodes looks like %r", flattened_nodes)
 
-    ## transform flattened nodes into node map TODO add to tree class
+    ## transform flattened nodes into node map
     node_map = {}
     for node in flattened_nodes:
         node_map[node["node_id"]] = {
@@ -107,12 +106,12 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
         }
     logger.debug("node_map looks like %r", node_map)
 
-    relevant_nodes = []
-
     # Answer from LLM contains backticks to indicate a JSON file
     llm_answer = get_json_content(tree_search_result.content)
 
     tree_search_result_json = json.loads(llm_answer)
+
+    relevant_nodes = []
     for node_id in tree_search_result_json["node_list"]:
         relevant_nodes.append(node_map[node_id])
 
@@ -121,7 +120,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     # 4. return relevant nodes
     return_value = [
         {"document_name": tree["doc_name"], "nodes": relevant_nodes}
-    ]  # TODO: change documents[0] cause in any case only 1 Document will be returned
+    ] 
 
     return return_value
 
