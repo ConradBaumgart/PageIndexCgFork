@@ -61,7 +61,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
             except FileNotFoundError:
                 logger.exception("Error: File not found.")
             except json.JSONDecodeError as e:
-                logger.exception("Error doecing JSON")
+                logger.exception("Error decoding JSON")
             except Exception as e:
                 logger.exception("Unexpected error")
             doc_dict = {"doc_name": tree["doc_name"], "doc_path": tree_path, "doc_description": tree["doc_description"]}
@@ -113,7 +113,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     except FileNotFoundError:
         logger.exception("Error: File not found.")
     except json.JSONDecodeError as e:
-        logger.exception("Error doecing JSON")
+        logger.exception("Error decoding JSON")
     except Exception as e:
         logger.exception("Unexpected error")
 
