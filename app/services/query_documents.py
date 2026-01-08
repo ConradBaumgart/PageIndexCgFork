@@ -84,12 +84,13 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
 
     tree_search_result = llm.generate(messages, json_response=True)
 
-    # query LLM
+    # Clean LLM response from text which might spoil JSON strucutre
+    llm_answer = get_json_content(tree_search_result.content)
+
+    tree_search_result_json = json.loads(llm_answer)
+
+    # create node_map to select nodes by node_id
     flattened_nodes = get_nodes(tree["structure"])
-
-    logger.debug("flattend nodes looks like %r", flattened_nodes)
-
-    ## transform flattened nodes into node map
     node_map = {}
     for node in flattened_nodes:
         node_map[node["node_id"]] = {
@@ -101,11 +102,6 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
             "summary": node["summary"],
         }
     logger.debug("node_map looks like %r", node_map)
-
-    # Answer from LLM contains backticks to indicate a JSON file
-    llm_answer = get_json_content(tree_search_result.content)
-
-    tree_search_result_json = json.loads(llm_answer)
 
     relevant_nodes = []
     for node_id in tree_search_result_json["node_list"]:
