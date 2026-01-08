@@ -10,7 +10,7 @@ from pageindex.utils import get_json_content, get_nodes, remove_fields
 
 logger = get_logger(__name__)
 
-RESULTS_DIR = Path("app/data/generated_trees")
+TREE_FOLDER = Path("app/data/generated_trees")
 
 
 def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, Any]]:
@@ -35,7 +35,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     logger.info("Call to handle_query_documents with arguments query=%s and documents=%s", query, documents)
 
     # 1. Step: get tree according to documents and query
-    available_trees = list_available_trees(RESULTS_DIR)
+    available_trees = list_available_trees(TREE_FOLDER)
 
     requested_trees = [
         tree for tree in available_trees if tree["doc_name"].lower() in [doc.lower() for doc in documents]
@@ -44,19 +44,15 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     logger.info("%d trees were found from %d documents requested.", len(requested_trees), len(documents))
     logger.debug("These documents were found when searching for trees: %r", requested_trees)
 
-    selected_tree = select_relevant_tree(requested_trees)
+    selected_tree = select_relevant_tree(query=query, tree_list=requested_trees)
 
-    # 2. Step: remove text from nodes (see utils.remove_fields) TODO as method into tree class
+    # 2. Step: load tree and remove text from nodes
 
     try:
-        with open(selected_tree.get("path"), "r", encoding="utf-8") as f:
-            tree = json.load(f)
-    except FileNotFoundError:
-        logger.exception("Error: File not found.")
-    except json.JSONDecodeError as e:
-        logger.exception("Error decoding JSON")
+        tree = load_tree(selected_tree.get("doc_path"))
     except Exception as e:
-        logger.exception("Unexpected error")
+        logger.exception("Unexpected error when loading tree.")
+        raise HTTPException(status_code=500)
 
     tree_without_text = remove_fields(tree, "text")
     logger.debug("Tree without text will be provided: %r", tree_without_text)
@@ -118,35 +114,46 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     logger.info("Relevant nodes are: %s", relevant_nodes)
 
     # 4. return relevant nodes
-    return_value = [
-        {"document_name": tree["doc_name"], "nodes": relevant_nodes}
-    ] 
+    return_value = [{"document_name": tree["doc_name"], "nodes": relevant_nodes}]
 
     return return_value
 
 
-def list_available_trees(tree_location: str) -> List[dict[str, str]]:
+def list_available_trees(tree_folder: Path) -> List[dict[str, Any]]:
     """
     Lists all trees which are available in the tree location path.
     Args:
-        tree_location (str): path to folder where tree files are stored.
+        tree_folder (Path): Path to folder where tree files are stored.
     Return:
-        List[dict[str, str]]: List of available trees containing name, description and path.
+        List[dict[str, Any]]: List of available trees containing name, description and path.
     """
     tree_list = []
-    for json_path in tree_location.rglob("*.json"):
+    for json_path in tree_folder.rglob("*.json"):
         try:
-            with open(json_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            doc_name = data.get("doc_name")
-            doc_description = data.get("doc_description")
-            tree_list.append({"doc_name": doc_name, "doc_description": doc_description, "path": json_path})
-        except (json.JSONDecodeError, OSError):
-            logger.exception("Error when iterating through trees")
+            tree = load_tree(json_path)
+        except (json.JSONDecodeError, OSError, FileNotFoundError):
+            logger.warning("Skipping unreadable tree file: %s", json_path)
             continue
+        doc_name = tree.get("doc_name")
+        doc_description = tree.get("doc_description")
+        tree_list.append({"doc_name": doc_name, "doc_description": doc_description, "doc_path": json_path})
+
     return tree_list
 
-def select_relevant_tree(query: str, tree_list: List[dict[str, str]]) -> dict[str, str]:
+
+def load_tree(tree_path: Path) -> dict[str, Any]:
+    """
+    Loads a tree based on a Path and return the tree object.
+    Args:
+        tree_path (Path): path to tree JSON file.
+    Return:
+        dict[str, Any]: tree object
+    """
+    with tree_path.open("r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def select_relevant_tree(query: str, tree_list: List[dict[str, Any]]) -> dict[str, Any]:
     """Select the most relevant document tree based on a query.
 
     If no trees are provided, raises an HTTP 404 error. If exactly one tree is provided,
@@ -155,7 +162,7 @@ def select_relevant_tree(query: str, tree_list: List[dict[str, str]]) -> dict[st
 
     Args:
         query (str): The user query to evaluate relevance against.
-        tree_list (List[dict[str, str]]): A list of document metadata dictionaries,
+        tree_list (List[dict[str, Any]]): A list of document metadata dictionaries,
             containing 'doc_name', 'doc_description', and 'path'.
 
     Returns:
@@ -164,7 +171,7 @@ def select_relevant_tree(query: str, tree_list: List[dict[str, str]]) -> dict[st
     Raises:
         HTTPException: If no documents are found (404) or if selection fails (500).
     """
-   
+
     if len(tree_list) == 0:
         raise HTTPException(status_code=404, detail=f"No documents were found.")
 
@@ -190,9 +197,9 @@ def select_relevant_tree(query: str, tree_list: List[dict[str, str]]) -> dict[st
         Return only the JSON structure, with no additional output.
         """
     logger.debug("Prompt to search for nodes: %r", doc_search_prompt)
-    
+
     messages = [{"role": "user", "content": doc_search_prompt}]
-    
+
     llm = LLMClient()
     llm_answer = llm.generate(messages, json_response=True)
 
@@ -201,11 +208,11 @@ def select_relevant_tree(query: str, tree_list: List[dict[str, str]]) -> dict[st
     doc_search_result_dict = json.loads(doc_search_result)
 
     revelant_doc_name = doc_search_result_dict["answer"]
-    
+
     if revelant_doc_name == "":
         logger.info("llm did not find relevant documents with reasoning %s", doc_search_result_dict["thinking"])
-        return [{"document_name": "", "nodes": ""}] # TODO might return 404 after clarification with Stephan
-    
+        return [{"document_name": "", "nodes": ""}]  # TODO might return 404 after clarification with Stephan
+
     relevant_tree = [document for document in tree_list if tree_list["doc_name"] == revelant_doc_name]
 
     if len(relevant_tree) != 1:
