@@ -35,31 +35,26 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     logger.info("Call to handle_query_documents with arguments query=%s and documents=%s", query, documents)
 
     # 1. Step: get trees according to documents and query TODO into seperate function?
-    tree_list = []
-    for json_path in RESULTS_DIR.rglob("*.json"):
-        try:
-            with json_path.open("r", encoding="utf-8") as f:
-                data = json.load(f)
-            doc_name = data.get("doc_name")
-            if doc_name in documents:
-                tree_list.append(json_path)
-        except (json.JSONDecodeError, OSError):
-            logger.exception("Error when iterating through trees")
-            continue
+    available_trees = list_available_trees(RESULTS_DIR)
 
-    logger.info("%d documents were found from %d documents requested.", len(tree_list), len(documents))
-    logger.debug("These documents were found when searching for trees: %r", tree_list)
+    requested_trees = [
+        tree for tree in available_trees
+        if tree["doc_name"].lower() in [doc.lower() for doc in documents]
+    ]
 
-    if len(tree_list) == 0:
+    logger.info("%d trees were found from %d documents requested.", len(requested_trees), len(documents))
+    logger.debug("These documents were found when searching for trees: %r", requested_trees)
+
+    if len(requested_trees) == 0:
         raise HTTPException(status_code=404, detail=f"No documents were found.")
 
-    if len(tree_list) == 1:
-        tree_path = tree_list[0]
+    if len(requested_trees) == 1:
+        tree_path = requested_trees[0]["path"]
 
-    if len(tree_list) > 1:
+    if len(requested_trees) > 1:
         logger.info("Start Document selection process.")
         document_descriptions = []
-        for tree_path in tree_list:
+        for tree_path in requested_trees:
             try:
                 with open(tree_path, "r", encoding="utf-8") as f:
                     tree = json.load(f)
@@ -188,3 +183,26 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     ]  # TODO: change documents[0] cause in any case only 1 Document will be returned
 
     return return_value
+
+def list_available_trees(tree_location: str) -> List[dict[str, str]]:
+    """
+    Lists all trees which are available in the tree location path.
+    Args:
+        tree_location (str): path to folder where tree files are stored.
+    Return:
+        List[dict[str, str]]: List of available trees containing name, description and path.
+    """
+    tree_list = []
+    for json_path in tree_location.rglob("*.json"):
+        try:
+            with json_path.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+            doc_name = data.get("doc_name")
+            doc_description = data.get("doc_description")
+            tree_list.append({"doc_name": doc_name,
+                              "doc_description": doc_description,
+                              "path": json_path})
+        except (json.JSONDecodeError, OSError):
+            logger.exception("Error when iterating through trees")
+            continue
+    return tree_list
