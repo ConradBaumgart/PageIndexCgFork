@@ -30,7 +30,6 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     Returns:
         List[Dict[str, Any]]: A list of dictionaries where each dictionary contains:
             - "document": The original document text or identifier.
-            - "relevance_score": A numeric score indicating how relevant the document is to the query.
             - "relevant_nodes": A list of extracted text segments or nodes that match the query context.
     """
 
