@@ -136,7 +136,7 @@ def list_available_trees(tree_location: str) -> List[dict[str, str]]:
     tree_list = []
     for json_path in tree_location.rglob("*.json"):
         try:
-            with json_path.open("r", encoding="utf-8") as f:
+            with open(json_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
             doc_name = data.get("doc_name")
             doc_description = data.get("doc_description")
