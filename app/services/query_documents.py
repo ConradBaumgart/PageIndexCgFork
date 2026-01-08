@@ -38,8 +38,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     available_trees = list_available_trees(RESULTS_DIR)
 
     requested_trees = [
-        tree for tree in available_trees
-        if tree["doc_name"].lower() in [doc.lower() for doc in documents]
+        tree for tree in available_trees if tree["doc_name"].lower() in [doc.lower() for doc in documents]
     ]
 
     logger.info("%d trees were found from %d documents requested.", len(requested_trees), len(documents))
@@ -184,6 +183,7 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
 
     return return_value
 
+
 def list_available_trees(tree_location: str) -> List[dict[str, str]]:
     """
     Lists all trees which are available in the tree location path.
@@ -199,9 +199,7 @@ def list_available_trees(tree_location: str) -> List[dict[str, str]]:
                 data = json.load(f)
             doc_name = data.get("doc_name")
             doc_description = data.get("doc_description")
-            tree_list.append({"doc_name": doc_name,
-                              "doc_description": doc_description,
-                              "path": json_path})
+            tree_list.append({"doc_name": doc_name, "doc_description": doc_description, "path": json_path})
         except (json.JSONDecodeError, OSError):
             logger.exception("Error when iterating through trees")
             continue
