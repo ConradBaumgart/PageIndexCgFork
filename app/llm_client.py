@@ -12,7 +12,7 @@ logger = get_logger(__name__)
 
 load_dotenv()
 PROVIDER = os.getenv("LLM_PROVIDER")  # "mistral" or "azure"
-TEMPERATURE = 0.0
+TEMPERATURE = 0
 
 
 @dataclass
