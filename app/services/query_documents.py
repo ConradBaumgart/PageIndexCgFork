@@ -44,70 +44,12 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     logger.info("%d trees were found from %d documents requested.", len(requested_trees), len(documents))
     logger.debug("These documents were found when searching for trees: %r", requested_trees)
 
-    if len(requested_trees) == 0:
-        raise HTTPException(status_code=404, detail=f"No documents were found.")
-
-    if len(requested_trees) == 1:
-        tree_path = requested_trees[0]["path"]
-
-    if len(requested_trees) > 1:
-        logger.info("Start Document selection process.")
-        document_descriptions = []
-        for tree_path in requested_trees:
-            try:
-                with open(tree_path, "r", encoding="utf-8") as f:
-                    tree = json.load(f)
-            except FileNotFoundError:
-                logger.exception("Error: File not found.")
-            except json.JSONDecodeError as e:
-                logger.exception("Error decoding JSON")
-            except Exception as e:
-                logger.exception("Unexpected error")
-            doc_dict = {"doc_name": tree["doc_name"], "doc_path": tree_path, "doc_description": tree["doc_description"]}
-            document_descriptions.append(doc_dict)
-
-        doc_search_prompt = f""" 
-            You are given a list of documents with their file names, and descriptions. Your task is to select one document that may contain information relevant to answering the user query.
-            
-            Query: {query}
-            
-            Documents: {document_descriptions}
-            
-            Response Format:
-            {{
-                "thinking": "<Your reasoning for document selection>",
-                "answer": <Python list of relevant doc_path>, e.g. ['data/MIL-STD-111.pdf']. Return [] if no document is relevant.
-            }}
-            
-            Return only the JSON structure, with no additional output.
-            """
-        logger.debug("Prompt to seach for nodes: %r", doc_search_prompt)
-
-        llm = LLMClient()
-
-        messages = []  #
-        messages.append({"role": "user", "content": doc_search_prompt})
-
-        doc_search_result = llm.generate(messages, json_response=True)
-
-        # Answer from LLM contains backticks to indicate a JSON file
-        llm_answer = get_json_content(doc_search_result.content)
-
-        doc_search_result_json = json.loads(llm_answer)
-        selected_document = doc_search_result_json["answer"]
-        if len(selected_document) == 0:
-            logger.info("llm did not find relevant documents with reasoning %s", doc_search_result_json["thinking"])
-            return [{"document_name": "", "nodes": ""}]
-        elif len(selected_document) == 1:
-            tree_path = selected_document[0]
-            logger.debug("llm returned %s with reasoning %s", selected_document, doc_search_result_json["thinking"])
-        else:
-            raise HTTPException(status_code=404, detail=f"Too many documents returned.")
+    selected_tree = select_relevant_tree(requested_trees)
 
     # 2. Step: remove text from nodes (see utils.remove_fields) TODO as method into tree class
 
     try:
-        with open(tree_path, "r", encoding="utf-8") as f:
+        with open(selected_tree.get("path"), "r", encoding="utf-8") as f:
             tree = json.load(f)
     except FileNotFoundError:
         logger.exception("Error: File not found.")
@@ -204,3 +146,70 @@ def list_available_trees(tree_location: str) -> List[dict[str, str]]:
             logger.exception("Error when iterating through trees")
             continue
     return tree_list
+
+def select_relevant_tree(query: str, tree_list: List[dict[str, str]]) -> dict[str, str]:
+    """Select the most relevant document tree based on a query.
+
+    If no trees are provided, raises an HTTP 404 error. If exactly one tree is provided,
+    returns it directly. If multiple trees are provided, uses an LLM to select the most
+    relevant one based on the query and document descriptions.
+
+    Args:
+        query (str): The user query to evaluate relevance against.
+        tree_list (List[dict[str, str]]): A list of document metadata dictionaries,
+            containing 'doc_name', 'doc_description', and 'path'.
+
+    Returns:
+        dict[str, str]: The document metadata dictionary of the selected document tree.
+
+    Raises:
+        HTTPException: If no documents are found (404) or if selection fails (500).
+    """
+   
+    if len(tree_list) == 0:
+        raise HTTPException(status_code=404, detail=f"No documents were found.")
+
+    if len(tree_list) == 1:
+        return tree_list[0]
+
+    logger.info("Start Document selection process.")
+
+    doc_search_prompt = f""" 
+        You are given a list of documents with their file names, and descriptions. Your task is to select one document that may contain information relevant to answering the user query.
+        
+        Query: {query}
+        
+        Documents: {tree_list}
+        
+        Response Format:
+        {{
+            "thinking": "<Your reasoning for document selection>",
+            "answer": "<Python string of relevant doc_name>, e.g. 'MIL-STD-111.pdf'" 
+        }}
+        
+        Return an empty string if no document is relevant.
+        Return only the JSON structure, with no additional output.
+        """
+    logger.debug("Prompt to search for nodes: %r", doc_search_prompt)
+    
+    messages = [{"role": "user", "content": doc_search_prompt}]
+    
+    llm = LLMClient()
+    llm_answer = llm.generate(messages, json_response=True)
+
+    # Answer from LLM might contain backticks to indicate a JSON file
+    doc_search_result = get_json_content(llm_answer.content)
+    doc_search_result_dict = json.loads(doc_search_result)
+
+    revelant_doc_name = doc_search_result_dict["answer"]
+    
+    if revelant_doc_name == "":
+        logger.info("llm did not find relevant documents with reasoning %s", doc_search_result_dict["thinking"])
+        return [{"document_name": "", "nodes": ""}] # TODO might return 404 after clarification with Stephan
+    
+    relevant_tree = [document for document in tree_list if tree_list["doc_name"] == revelant_doc_name]
+
+    if len(relevant_tree) != 1:
+        raise HTTPException(status_code=500, detail=f"Document selection failed.")
+
+    return relevant_tree[0]
