@@ -18,23 +18,23 @@ def handle_query_documents(query: str, documents: List[str]) -> List[Dict[str, A
     Identify and extract relevant content from a collection of documents based on a given query.
 
     This function performs the following steps:
-    1. Evaluates the relevance of each document to the provided query using an LLM (Large Language Model).
-    2. Selects the most relevant document(s).
-    3. Extracts specific nodes or segments from the selected document(s) that are most pertinent to the query.
+    1. Selects the most relevant document to the provided query using an LLM (Large Language Model).
+    2. Prepares the document to be queried for the most relevant nodes.
+    3. Extracts specific nodes from the selected document that are most relevant to the query.
 
     Args:
         query (str): The user query or search term to evaluate against the documents.
-        documents (List[str]): A list of document contents as strings.
+        documents (List[str]): A list of document names.
 
     Returns:
         List[Dict[str, Any]]: A list of dictionaries where each dictionary contains:
             - "document": The original document text or identifier.
-            - "relevant_nodes": A list of extracted text segments or nodes that match the query context.
+            - "relevant_nodes": A list of extracted text segments that match the query context.
     """
 
     logger.info("Call to handle_query_documents with arguments query=%s and documents=%s", query, documents)
 
-    # 1. Step: get tree according to documents and query
+    # 1. Step: get relevant tree based on query and documents
     available_trees = list_available_trees(TREE_FOLDER)
 
     requested_trees = [
@@ -162,7 +162,7 @@ def select_relevant_tree(query: str, tree_list: List[dict[str, Any]]) -> dict[st
             containing 'doc_name', 'doc_description', and 'path'.
 
     Returns:
-        dict[str, str]: The document metadata dictionary of the selected document tree.
+        dict[str, Any]: The document metadata dictionary of the selected document tree.
 
     Raises:
         HTTPException: If no documents are found (404) or if selection fails (500).
@@ -203,13 +203,13 @@ def select_relevant_tree(query: str, tree_list: List[dict[str, Any]]) -> dict[st
     doc_search_result = get_json_content(llm_answer.content)
     doc_search_result_dict = json.loads(doc_search_result)
 
-    revelant_doc_name = doc_search_result_dict["answer"]
+    relevant_doc_name = doc_search_result_dict["answer"]
 
-    if revelant_doc_name == "":
+    if relevant_doc_name == "":
         logger.info("llm did not find relevant documents with reasoning %s", doc_search_result_dict["thinking"])
-        return [{"document_name": "", "nodes": ""}]  # TODO might return 404 after clarification with Stephan
+        raise HTTPException(status_code=400, details = "No relevant documents where found.")
 
-    relevant_tree = [document for document in tree_list if tree_list["doc_name"] == revelant_doc_name]
+    relevant_tree = [document for document in tree_list if document["doc_name"] == relevant_doc_name]
 
     if len(relevant_tree) != 1:
         raise HTTPException(status_code=500, detail=f"Document selection failed.")
