@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from typing import Dict, List
 
-RESULTS_DIR = Path("app/data/generated_trees")
+TREE_FOLDER = Path("app/data/generated_trees")
 
 
 def list_documents() -> List[Dict[str, str]]:
@@ -10,12 +10,12 @@ def list_documents() -> List[Dict[str, str]]:
     Scan the fixed `app/data/generated_trees/` directory recursively for `.json` files and return a list
     of `doc_name` strings.
     """
-    if not RESULTS_DIR.exists() or not RESULTS_DIR.is_dir():
+    if not TREE_FOLDER.exists() or not TREE_FOLDER.is_dir():
         return []
 
     doc_infos: List[Dict[str, str]] = []
 
-    for json_path in RESULTS_DIR.rglob("*.json"):
+    for json_path in TREE_FOLDER.rglob("*.json"):
         try:
             with json_path.open("r", encoding="utf-8") as f:
                 data = json.load(f)

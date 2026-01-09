@@ -44,7 +44,7 @@ async def list_available_documents() -> List[Dict[str, str]]:
 
 @app.get("/query_documents")
 async def query_documents(
-    query: str = Query(..., description="The question or search query"),
+    statement: str = Query(..., description="The question or search query"),
     documents: List[str] = Query(
         ...,
         description="List of document names (repeat this query param)",
@@ -52,10 +52,10 @@ async def query_documents(
     ),
 ) -> List[Dict[str, Any]]:
     """
-    Return content from documents relevant to the query.
-    Currently, information will be retrieved from 1 document. The document with the most relevance for the query will be used.
+    Return content from documents relevant to the statement.
+    Currently, information will be retrieved from 1 document. The document with the most relevance for the statement will be used.
     """
-    return handle_query_documents(query, documents)
+    return handle_query_documents(statement, documents)
 
 
 @app.post("/upload_document")
