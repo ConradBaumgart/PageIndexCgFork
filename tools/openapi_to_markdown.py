@@ -119,15 +119,11 @@ def _render_request_body(rb: Dict[str, Any], components: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-
-
-
-
 def _render_responses(responses: Dict[str, Any], components: Dict[str, Any]) -> str:
     if not responses:
         return ""
 
-    lines: list[str] = ["### Responses"] 
+    lines: list[str] = ["### Responses"]
 
     for status, resp in responses.items():
         description = _md_escape(resp.get("description", ""))
@@ -152,10 +148,6 @@ def _render_responses(responses: Dict[str, Any], components: Dict[str, Any]) -> 
                 lines.append(f"\n**Returns:** {ctype_list}")
 
     return "\n".join(lines)
-
-
-
-
 
 
 def openapi_to_markdown(schema: Dict[str, Any]) -> str:
