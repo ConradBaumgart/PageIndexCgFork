@@ -56,17 +56,17 @@
     "/query_documents": {
       "get": {
         "summary": "Query Documents",
-        "description": "Return content from documents relevant to the query.\nCurrently, information will be retrieved from 1 document. The document with the most relevance for the query will be used.",
+        "description": "Return content from documents relevant to the statement.\nCurrently, information will be retrieved from 1 document. The document with the most relevance for the statement will be used.",
         "operationId": "query_documents_query_documents_get",
         "parameters": [
           {
-            "name": "query",
+            "name": "statement",
             "in": "query",
             "required": true,
             "schema": {
               "type": "string",
               "description": "The question or search query",
-              "title": "Query"
+              "title": "Statement"
             },
             "description": "The question or search query"
           },

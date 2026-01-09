@@ -119,20 +119,43 @@ def _render_request_body(rb: Dict[str, Any], components: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+
+
+
+
 def _render_responses(responses: Dict[str, Any], components: Dict[str, Any]) -> str:
     if not responses:
         return ""
-    lines = ["**Responses**"]
+
+    lines: list[str] = ["### Responses"] 
+
     for status, resp in responses.items():
-        lines.append(f"\n- **{status}**: {_md_escape(resp.get('description', ''))}")
-        content = resp.get("content", {})
-        for ctype, spec in content.items():
-            lines.append(f"  - _Content-Type_: `{ctype}`")
-            schema = spec.get("schema", {})
-            rendered = _render_schema(schema, components)
-            if rendered.strip():
-                lines.append(rendered)
+        description = _md_escape(resp.get("description", ""))
+
+        # Color coding: green for 200, red for others (not too bright)
+        if status == "200":
+            status_md = f"<span style='color:#2e7d32; font-weight:bold;'>{status}</span>"
+        else:
+            status_md = f"<span style='color:#c62828; font-weight:bold;'>{status}</span>"
+
+        # Add the status heading (no extra blank line before the first one)
+        lines.append(f"### {status_md}")
+        if description:
+            lines.append(f"**Description:** {description}")
+
+        # Show content type ONLY for 200
+        if status == "200":
+            content = resp.get("content", {})
+            if content:
+                # If multiple content types exist, list them comma-separated
+                ctype_list = ", ".join(f"`{ctype}`" for ctype in content.keys())
+                lines.append(f"\n**Returns:** {ctype_list}")
+
     return "\n".join(lines)
+
+
+
+
 
 
 def openapi_to_markdown(schema: Dict[str, Any]) -> str:
@@ -156,7 +179,7 @@ def openapi_to_markdown(schema: Dict[str, Any]) -> str:
 
     # Sort paths + methods for stable output
     for path in sorted(paths.keys()):
-        md.append(f"\n### `{path}`")
+        md.append(f"\n---\n### `{path}`")
         methods = paths[path]
         for method in sorted(methods.keys()):
             op = methods[method]

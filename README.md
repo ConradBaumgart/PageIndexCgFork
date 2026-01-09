@@ -74,17 +74,19 @@ For Operations:
 
 **Information Retrieval Service** (v0.1.0)
 
+---
 ### `/health_check`
 
 #### GET
 **Summary**: Health Check
 
-**Responses**
+### Responses
+### <span style='color:#2e7d32; font-weight:bold;'>200</span>
+**Description:** Successful Response
 
-- **200**: Successful Response
-  - _Content-Type_: `application/json`
-- **type**: `object`
+**Returns:** `application/json`
 
+---
 ### `/list_available_documents`
 
 #### GET
@@ -92,47 +94,37 @@ For Operations:
 
 List all documents which are available for information retrieval.
 
-**Responses**
+### Responses
+### <span style='color:#2e7d32; font-weight:bold;'>200</span>
+**Description:** Successful Response
 
-- **200**: Successful Response
-  - _Content-Type_: `application/json`
-- **type**: `array`
-- **items**:
-- **type**: `object`
+**Returns:** `application/json`
 
+---
 ### `/query_documents`
 
 #### GET
 **Summary**: Query Documents
 
-Return content from documents relevant to the query.
-Currently, information will be retrieved from 1 document. The document with the most relevance for the query will be used.
+Return content from documents relevant to the statement.
+Currently, information will be retrieved from 1 document. The document with the most relevance for the statement will be used.
 
 **Parameters**
 
 | Name | In | Required | Type | Description |
 |------|----|----------|------|-------------|
-| `query` | `query` | yes | `string` | The question or search query |
+| `statement` | `query` | yes | `string` | The question or search query |
 | `documents` | `query` | yes | `array` | List of document names (repeat this query param) |
 
-**Responses**
+### Responses
+### <span style='color:#2e7d32; font-weight:bold;'>200</span>
+**Description:** Successful Response
 
-- **200**: Successful Response
-  - _Content-Type_: `application/json`
-- **type**: `array`
-- **items**:
-- **type**: `object`
+**Returns:** `application/json`
+### <span style='color:#c62828; font-weight:bold;'>422</span>
+**Description:** Validation Error
 
-- **422**: Validation Error
-  - _Content-Type_: `application/json`
-**Schema**: `HTTPValidationError`
-- **type**: `object`
-
-**Properties**
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| `detail` | `array` | no |  |
-
+---
 ### `/upload_document`
 
 #### POST
@@ -152,20 +144,12 @@ _Content-Type_: `multipart/form-data`
 |------|------|----------|-------------|
 | `file` | `string` (`binary`) | yes |  |
 
-**Responses**
+### Responses
+### <span style='color:#2e7d32; font-weight:bold;'>200</span>
+**Description:** Successful Response
 
-- **200**: Successful Response
-  - _Content-Type_: `application/json`
-- **type**: `object`
-
-- **422**: Validation Error
-  - _Content-Type_: `application/json`
-**Schema**: `HTTPValidationError`
-- **type**: `object`
-
-**Properties**
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| `detail` | `array` | no |  |
+**Returns:** `application/json`
+### <span style='color:#c62828; font-weight:bold;'>422</span>
+**Description:** Validation Error
 
 <!-- AUTO-GENERATED-OPENAPI:END -->
