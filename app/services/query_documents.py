@@ -45,6 +45,8 @@ def handle_query_documents(statement: str, documents: List[str]) -> List[Dict[st
     logger.debug("These documents were found when searching for trees: %r", requested_trees)
 
     selected_tree = select_relevant_tree(query=statement, tree_list=requested_trees)
+    if selected_tree == [{"doc_name": "", "doc_description": "", "doc_path": ""}]: # Can be removed if select_relevant_tree return HTTPException
+        return [{"document_name": "", "nodes": ""}]
 
     # 2. Step: load tree and remove text from nodes
 
@@ -205,7 +207,8 @@ def select_relevant_tree(query: str, tree_list: List[dict[str, Any]]) -> dict[st
 
     if relevant_doc_name == "":
         logger.info("llm did not find relevant documents with reasoning %s", doc_search_result_dict["thinking"])
-        raise HTTPException(status_code=400, details="No relevant documents where found.")
+        #raise HTTPException(status_code=400, details="No relevant documents where found.") # Might raise HHTPException 
+        return [{"doc_name": "", "doc_description": "", "doc_path": ""}]
 
     relevant_tree = [document for document in tree_list if document["doc_name"] == relevant_doc_name]
 
